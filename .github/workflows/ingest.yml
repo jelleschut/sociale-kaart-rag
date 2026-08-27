@@ -1,0 +1,49 @@
+name: ingest
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Bron"
+        type: choice
+        options: [kb]
+        default: kb
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    environment: azure
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.8"
+          terraform_wrapper: false
+      - name: endpoints uit terraform-state
+        working-directory: infra
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_USE_AZUREAD: "true"
+          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          terraform init -input=false -backend-config="storage_account_name=${{ vars.TFSTATE_STORAGE_ACCOUNT }}" -backend-config="resource_group_name=${{ vars.TFSTATE_RG }}"
+          {
+            echo "Azure__OpenAiEndpoint=$(terraform output -raw openai_endpoint)"
+            echo "Azure__SearchEndpoint=$(terraform output -raw search_endpoint)"
+            echo "Azure__StorageAccountUrl=$(terraform output -raw storage_account_url)"
+            echo "Azure__ChatDeployment=$(terraform output -raw chat_deployment)"
+            echo "Azure__EmbeddingDeployment=$(terraform output -raw embedding_deployment)"
+          } >> "$GITHUB_ENV"
+      - run: dotnet run --project src/Ingest -- index-create
+      - run: dotnet run --project src/Ingest -- ingest-${{ inputs.source }}

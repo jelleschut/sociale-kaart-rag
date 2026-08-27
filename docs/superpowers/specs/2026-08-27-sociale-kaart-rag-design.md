@@ -22,7 +22,7 @@ getest, elke keuze in een ADR.
 | Repo | GitHub `jelleschut/sociale-kaart-rag`, publiek, MIT; git-identiteit `jelleschut@hotmail.com` |
 | Budget | ≤ €25/maand, afgedwongen met Azure Budget + alerts (50/80/100 %) en lage TPM-quota |
 | Stack | .NET 10 minimal API + htmx-pagina; Terraform; GitHub Actions met OIDC |
-| Model | `gpt-4o-mini` (chat) en `text-embedding-3-small` (embeddings) via Azure AI Foundry/OpenAI-resource |
+| Model | `gpt-4.1-mini` (chat; **afwijking 27-08**: `gpt-4o-mini 2024-07-18` bleek sinds 31-03-2026 gedeprecieerd, en had 0 GlobalStandard-quota — chat draait op SKU `Standard`, embedding op `GlobalStandard`) en `text-embedding-3-small` (embeddings) via Azure AI Foundry/OpenAI-resource |
 | Corpus | (a) publieke sociale-kaart-data zorg & welzijn NL (organisaties/diensten, geen personen); (b) `kb-chunks.jsonl` uit soevereinlab-knowledge, ongewijzigd |
 | Buiten scope | accounts/CIAM, kaart-UI, WordPress/CMS, spraak (ASR), semantic ranker, multi-region |
 

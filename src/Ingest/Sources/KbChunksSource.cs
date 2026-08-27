@@ -62,7 +62,8 @@ public static class KbChunksSource
         return new IngestReport(valid, errors.Count, errors);
     }
 
-    /// <summary>id "topic-age" met type "topic" → topics/age.md; runbook → runbooks/; decision → decisions/; reference → reference/.</summary>
+    /// <summary>Bestandsnaam in soevereinlab-knowledge is altijd `&lt;id&gt;.md` in de map van het type
+    /// (topics/topic-age.md, runbooks/rb-…md, decisions/dec-…md, reference/…md).</summary>
     public static string SourceUrlFor(string? type, string id)
     {
         var folder = type switch
@@ -70,8 +71,6 @@ public static class KbChunksSource
             "topic" => "topics", "runbook" => "runbooks", "decision" => "decisions", "reference" => "reference",
             _ => "docs",
         };
-        var prefix = type is null ? "" : type + "-";
-        var file = id.StartsWith(prefix, StringComparison.Ordinal) ? id[prefix.Length..] : id;
-        return $"{RepoBlobBase}/{folder}/{file}.md";
+        return $"{RepoBlobBase}/{folder}/{id}.md";
     }
 }

@@ -19,7 +19,7 @@ public class KbChunksSourceTests
         Assert.Equal("kb", c.Corpus);
         Assert.Equal("topic-age#00", c.SourceId);
         Assert.Equal("soevereinlab-knowledge", c.Source);
-        Assert.Equal("https://gitlab.com/platform-engineer9761628/soevereine-cloud/soevereinlab-knowledge/-/blob/main/topics/age.md", c.SourceUrl);
+        Assert.Equal("https://gitlab.com/platform-engineer9761628/soevereine-cloud/soevereinlab-knowledge/-/blob/main/topics/topic-age.md", c.SourceUrl);
         Assert.Equal("age — the encryption backend > What it is", c.HeadingPath);
         Assert.Equal(["age", "sops"], c.Tags);
         Assert.Equal("2026-07-15", c.LastVerified);
@@ -44,10 +44,10 @@ public class KbChunksSourceTests
     }
 
     [Theory]
-    [InlineData("topic", "topic-age", "topics/age.md")]
-    [InlineData("runbook", "runbook-restore-etcd", "runbooks/restore-etcd.md")]
-    [InlineData("decision", "decision-0007-x", "decisions/0007-x.md")]
-    [InlineData("reference", "reference-ports", "reference/ports.md")]
+    [InlineData("topic", "topic-age", "topics/topic-age.md")]
+    [InlineData("runbook", "rb-2026-07-14-bootstrap-pipeline", "runbooks/rb-2026-07-14-bootstrap-pipeline.md")]
+    [InlineData("decision", "dec-2026-07-14-vps-provider-selection", "decisions/dec-2026-07-14-vps-provider-selection.md")]
+    [InlineData("reference", "alert-receiver-draaiboek", "reference/alert-receiver-draaiboek.md")]
     public void Source_url_maps_type_and_id_to_repo_path(string type, string id, string expectedTail)
     {
         Assert.EndsWith("/-/blob/main/" + expectedTail, KbChunksSource.SourceUrlFor(type, id));

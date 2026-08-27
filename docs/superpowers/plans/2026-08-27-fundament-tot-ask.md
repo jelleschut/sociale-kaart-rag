@@ -769,7 +769,7 @@ git checkout main; git pull
 ```dockerfile
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY global.json Directory.Build.props SocialeKaartRag.sln ./
+COPY global.json Directory.Build.props SocialeKaartRag.slnx ./
 COPY src/Core/SocialeKaartRag.Core.csproj src/Core/
 COPY src/Api/SocialeKaartRag.Api.csproj src/Api/
 RUN dotnet restore src/Api/SocialeKaartRag.Api.csproj
@@ -901,10 +901,13 @@ jobs:
           ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
         run: |
-          terraform init -backend-config="storage_account_name=${{ vars.TFSTATE_STORAGE_ACCOUNT }}" -backend-config="resource_group_name=${{ vars.TFSTATE_RG }}"
-          terraform plan -var "app_image=${IMAGE}:${{ github.sha }}" -out=tfplan
-          terraform apply -auto-approve tfplan
+          terraform init -input=false -backend-config="storage_account_name=${{ vars.TFSTATE_STORAGE_ACCOUNT }}" -backend-config="resource_group_name=${{ vars.TFSTATE_RG }}"
+          terraform plan -input=false -out=tfplan
+          terraform apply -input=false -auto-approve tfplan
+          echo "RG=$(terraform output -raw resource_group)" >> "$GITHUB_ENV"
           echo "api_url=$(terraform output -raw api_url)" >> "$GITHUB_STEP_SUMMARY"
+      - name: nieuwe image op de Container App (Terraform negeert de image na de eerste apply)
+        run: az containerapp update -g "$RG" -n "$(az containerapp list -g "$RG" --query '[0].name' -o tsv)" --image "${IMAGE}:${{ github.sha }}"
       - name: smoke
         working-directory: infra
         run: curl -fsS "$(terraform output -raw api_url)/healthz"
@@ -949,7 +952,7 @@ jobs:
           ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
         run: |
-          terraform init -backend-config="storage_account_name=${{ vars.TFSTATE_STORAGE_ACCOUNT }}" -backend-config="resource_group_name=${{ vars.TFSTATE_RG }}"
+          terraform init -input=false -backend-config="storage_account_name=${{ vars.TFSTATE_STORAGE_ACCOUNT }}" -backend-config="resource_group_name=${{ vars.TFSTATE_RG }}"
           echo "Azure__OpenAiEndpoint=$(terraform output -raw openai_endpoint)" >> "$GITHUB_ENV"
           echo "Azure__SearchEndpoint=$(terraform output -raw search_endpoint)" >> "$GITHUB_ENV"
           echo "Azure__StorageAccountUrl=$(terraform output -raw storage_account_url)" >> "$GITHUB_ENV"
@@ -1090,7 +1093,7 @@ public sealed class AzureOptions
     public required string OpenAiEndpoint { get; init; }
     public required string SearchEndpoint { get; init; }
     public required string StorageAccountUrl { get; init; }
-    public string ChatDeployment { get; init; } = "gpt-4o-mini";
+    public string ChatDeployment { get; init; } = "gpt-4.1-mini";
     public string EmbeddingDeployment { get; init; } = "text-embedding-3-small";
 }
 
@@ -2127,11 +2130,11 @@ public class TraceRecordTests
     }
 
     [Theory]
-    [InlineData(1000, 500, 0, 0.000450)]      // gpt-4o-mini: $0.15/M in, $0.60/M out → €-koers 0,92
-    [InlineData(1000, 0, 1000, 0.000069)]     // volledig gecachte input: 50 %
+    [InlineData(1000, 500, 0, 0.001104)]      // gpt-4.1-mini: $0.40/M in, $1.60/M out → €-koers 0,92
+    [InlineData(1000, 0, 1000, 0.000184)]     // volledig gecachte input: 50 %
     public void Estimates_cost_in_eur(int tokensIn, int tokensOut, int cached, double expectedEur)
     {
-        var eur = CostEstimator.EstimateEur("gpt-4o-mini", tokensIn, tokensOut, cached);
+        var eur = CostEstimator.EstimateEur("gpt-4.1-mini", tokensIn, tokensOut, cached);
         Assert.Equal(expectedEur, eur, 6);
     }
 }
@@ -2201,13 +2204,14 @@ public static class CostEstimator
     private const double UsdToEur = 0.92;
     private static readonly Dictionary<string, (double In, double Out)> Prices = new(StringComparer.OrdinalIgnoreCase)
     {
+        ["gpt-4.1-mini"] = (0.40, 1.60),
         ["gpt-4o-mini"] = (0.15, 0.60),
         ["text-embedding-3-small"] = (0.02, 0),
     };
 
     public static double EstimateEur(string model, int tokensIn, int tokensOut, int tokensCached)
     {
-        var key = Prices.Keys.FirstOrDefault(k => model.StartsWith(k, StringComparison.OrdinalIgnoreCase)) ?? "gpt-4o-mini";
+        var key = Prices.Keys.FirstOrDefault(k => model.StartsWith(k, StringComparison.OrdinalIgnoreCase)) ?? "gpt-4.1-mini";
         var (pin, pout) = Prices[key];
         var uncached = Math.Max(0, tokensIn - tokensCached);
         var usd = (uncached * pin + tokensCached * pin * 0.5 + tokensOut * pout) / 1_000_000;

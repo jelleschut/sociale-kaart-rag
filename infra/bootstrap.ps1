@@ -13,7 +13,23 @@ param(
   [string]$IdentityName = "id-skr-github-deploy"
 )
 $ErrorActionPreference = "Stop"
+$PSNativeCommandUseErrorActionPreference = $true
 if (-not $env:AZURE_CONFIG_DIR) { throw "AZURE_CONFIG_DIR is niet gezet; weiger tegen het standaardprofiel te draaien." }
+
+function Test-AzExists([scriptblock]$Probe) {
+  $prev = $PSNativeCommandUseErrorActionPreference
+  $PSNativeCommandUseErrorActionPreference = $false
+  try { $out = & $Probe 2>$null; return ($LASTEXITCODE -eq 0 -and $out) } finally { $PSNativeCommandUseErrorActionPreference = $prev }
+}
+
+function Ensure-RoleAssignment([string]$ObjectId, [string]$PrincipalType, [string]$Role, [string]$Scope) {
+  if (Test-AzExists { az role assignment list --assignee $ObjectId --role $Role --scope $Scope --query "[0].id" -o tsv }) {
+    Write-Host "  role: $Role @ $Scope (bestond al)"
+  } else {
+    az role assignment create --assignee-object-id $ObjectId --assignee-principal-type $PrincipalType --role $Role --scope $Scope | Out-Null
+    Write-Host "  role: $Role @ $Scope (aangemaakt)"
+  }
+}
 
 az account set --subscription $SubscriptionId
 $tenant = az account show --query tenantId -o tsv
@@ -28,7 +44,7 @@ Write-Host "== tfstate storage"
 az group create -n $StateRg -l $Location --tags project=sociale-kaart-rag owner=jelleschut costcenter=demo | Out-Null
 $existing = az storage account list -g $StateRg --query "[?starts_with(name,'stskrtfstate')].name | [0]" -o tsv
 if (-not $existing) {
-  $suffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
+  $suffix = -join (1..6 | ForEach-Object { [char](Get-Random -Minimum 97 -Maximum 123) })
   $existing = "stskrtfstate$suffix"
   az storage account create -n $existing -g $StateRg -l $Location --sku Standard_LRS --kind StorageV2 --allow-blob-public-access false --min-tls-version TLS1_2 | Out-Null
 }
@@ -41,20 +57,23 @@ az identity create -n $IdentityName -g $StateRg -l $Location | Out-Null
 $id = az identity show -n $IdentityName -g $StateRg | ConvertFrom-Json
 foreach ($sub in @("repo:${Repo}:environment:azure", "repo:${Repo}:ref:refs/heads/main", "repo:${Repo}:pull_request")) {
   $fname = ($sub -replace '[^a-zA-Z0-9]', '-')
-  az identity federated-credential create --name $fname --identity-name $IdentityName -g $StateRg `
-    --issuer "https://token.actions.githubusercontent.com" --subject $sub --audiences "api://AzureADTokenExchange" 2>$null | Out-Null
-  Write-Host "  federated: $sub"
+  if (-not (Test-AzExists { az identity federated-credential show --name $fname --identity-name $IdentityName -g $StateRg --query name -o tsv })) {
+    az identity federated-credential create --name $fname --identity-name $IdentityName -g $StateRg `
+      --issuer "https://token.actions.githubusercontent.com" --subject $sub --audiences "api://AzureADTokenExchange" | Out-Null
+    Write-Host "  federated: $sub (aangemaakt)"
+  } else {
+    Write-Host "  federated: $sub (bestond al)"
+  }
 }
 $scope = "/subscriptions/$SubscriptionId"
 foreach ($role in "Contributor","User Access Administrator") {
-  az role assignment create --assignee-object-id $id.principalId --assignee-principal-type ServicePrincipal --role $role --scope $scope | Out-Null
-  Write-Host "  role: $role @ subscription"
+  Ensure-RoleAssignment -ObjectId $id.principalId -PrincipalType ServicePrincipal -Role $role -Scope $scope
 }
 $stateAccountId = az storage account show -n $stateAccount -g $StateRg --query id -o tsv
-az role assignment create --assignee-object-id $id.principalId --assignee-principal-type ServicePrincipal --role "Storage Blob Data Contributor" --scope $stateAccountId | Out-Null
+Ensure-RoleAssignment -ObjectId $id.principalId -PrincipalType ServicePrincipal -Role "Storage Blob Data Contributor" -Scope $stateAccountId
 # Ook de ingelogde gebruiker mag de state lezen/schrijven (lokale terraform-runs).
 $me = az ad signed-in-user show --query id -o tsv
-az role assignment create --assignee-object-id $me --assignee-principal-type User --role "Storage Blob Data Contributor" --scope $stateAccountId | Out-Null
+Ensure-RoleAssignment -ObjectId $me -PrincipalType User -Role "Storage Blob Data Contributor" -Scope $stateAccountId
 
 Write-Host "== GitHub Actions-variabelen"
 gh variable set AZURE_CLIENT_ID --repo $Repo --body $id.clientId

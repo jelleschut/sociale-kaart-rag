@@ -26,6 +26,11 @@ public sealed class AppInsightsTraceSink(TelemetryClient telemetry) : ITraceSink
         evt.Properties["latencyMs"] = r.LatencyMs.ToString();
         evt.Properties["retrieved"] = r.RetrievedChunkIds.Length.ToString();
         telemetry.TrackEvent(evt);
+        // Numerieke velden ook als echte metrics (customMetrics) voor dashboards/alerts op kosten en latency.
+        telemetry.GetMetric("rag.estimatedCostEur").TrackValue(r.EstimatedCostEur);
+        telemetry.GetMetric("rag.latencyMs").TrackValue(r.LatencyMs);
+        telemetry.GetMetric("rag.tokensIn").TrackValue(r.TokensIn);
+        telemetry.GetMetric("rag.tokensOut").TrackValue(r.TokensOut);
         return Task.CompletedTask;
     }
 }

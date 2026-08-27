@@ -1,0 +1,55 @@
+using System.Text.RegularExpressions;
+
+namespace SocialeKaartRag.Core.Policy;
+
+public sealed record PiiResult(string Text, bool Redacted, IReadOnlyList<string> Types);
+
+/// <summary>Regex-PII-filter op de vraag (spec §4.3 stap 1). Alleen typen worden gelogd, nooit waarden.</summary>
+public static partial class PiiFilter
+{
+    // Niet voorafgegaan door een woordteken/@/punt; aan het eind mag een punt (zinseinde) of haakje staan,
+    // maar geen decimaal vervolg (punt gevolgd door een cijfer) — dat is een getal, geen BSN.
+    [GeneratedRegex(@"(?<![\w@.])\d{9}(?![\w@])(?!\.\d)")]
+    private static partial Regex Bsn();
+
+    [GeneratedRegex(@"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")]
+    private static partial Regex Email();
+
+    // NL mobiel (06 / +31 6) en vast (0xx-xxxxxxx / 0xxx-xxxxxx), met optionele haakjes/spaties/streepjes tussen de cijfergroepen
+    [GeneratedRegex(@"(?<!\d)(?:\+31|0031)[\s-]?(?:\(0\)|0)?[\s-]?(?:6(?:[\s-]?\d){8}|\d{2,3}(?:[\s-]?\d){6,7})(?!\d)|(?<!\d)0(?:6(?:[\s-]?\d){8}|\d{2,3}(?:[\s-]?\d){6,7})(?!\d)")]
+    private static partial Regex Phone();
+
+    // postcode gevolgd door huisnummer (evt. toevoeging) = adres; postcode alleen blijft staan (grofmazige locatie mag).
+    // NL-postcodes beginnen met 1-9 (geen 0xxx); geen datumcontext ervoor (bv. "06-12-2023"); de lettergroep
+    // mag geen gewoon Nederlands tweeletterwoord zijn (en/om/is/er/...), anders herkent dit jaartal+woord+getal
+    // (bv. "2023 is er 12") ten onrechte als adres; het huisnummer mag niet gevolgd worden door ":" (tijdsnotatie).
+    [GeneratedRegex(@"(?<![\d\-/.])(?<!\d[-/.])(?:[1-9]\d{3})\s?(?!(?:en|om|in|op|is|er|of|te|de|na|al|nu|ja|zo|ik|je|we|ze|me|er|el|un)\b)[A-Za-z]{2}\s*\d{1,5}(?:[\s-]?[A-Za-z])?(?![A-Za-z0-9:])")]
+    private static partial Regex Address();
+
+    public static PiiResult Redact(string input)
+    {
+        var types = new List<string>();
+        var text = input;
+
+        // E-mail eerst, zodat een cijferreeks in het lokale deel niet half als BSN wordt geredigeerd.
+        text = Email().Replace(text, _ => Mark(types, "email"));
+        text = Bsn().Replace(text, m => IsValidBsn(m.Value) ? Mark(types, "bsn") : m.Value);
+        text = Address().Replace(text, _ => Mark(types, "address"));
+        text = Phone().Replace(text, _ => Mark(types, "phone"));
+
+        return new PiiResult(text, types.Count > 0, types.Distinct().ToList());
+    }
+
+    /// <summary>11-proef: som(cijfer_i × gewicht_i) met gewichten 9..2 en −1 voor het laatste cijfer, deelbaar door 11.</summary>
+    public static bool IsValidBsn(string digits)
+    {
+        if (digits.Length != 9 || !digits.All(char.IsAsciiDigit)) return false;
+        if (digits.All(c => c == '0')) return false;
+        var sum = 0;
+        for (var i = 0; i < 8; i++) sum += (digits[i] - '0') * (9 - i);
+        sum -= digits[8] - '0';
+        return sum % 11 == 0;
+    }
+
+    private static string Mark(List<string> types, string type) { types.Add(type); return $"[{type}]"; }
+}

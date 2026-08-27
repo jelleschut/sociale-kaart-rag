@@ -23,7 +23,7 @@ getest, elke keuze in een ADR.
 | Budget | ≤ €25/maand, afgedwongen met Azure Budget + alerts (50/80/100 %) en lage TPM-quota |
 | Stack | .NET 10 minimal API + htmx-pagina; Terraform; GitHub Actions met OIDC |
 | Model | `gpt-4.1-mini` (chat; **afwijking 27-08**: `gpt-4o-mini 2024-07-18` bleek sinds 31-03-2026 gedeprecieerd, en had 0 GlobalStandard-quota — chat draait op SKU `Standard`, embedding op `GlobalStandard`) en `text-embedding-3-small` (embeddings) via Azure AI Foundry/OpenAI-resource |
-| Corpus | (a) publieke sociale-kaart-data zorg & welzijn NL (organisaties/diensten, geen personen); (b) `kb-chunks.jsonl` uit soevereinlab-knowledge, ongewijzigd |
+| Corpus | (a) publieke sociale-kaart-data zorg & welzijn NL (organisaties/diensten, geen personen); (b) `kb-chunks.jsonl` uit soevereinlab-knowledge, ongewijzigd — **besluit 27-08: (b) is uitsluitend een tijdelijk POC-corpus** om de pijplijn end-to-end te bouwen; zodra (a) live is (plan 2) verdwijnen de `kb`-index, `ingest-kb`, de `platform_kennis`-intent en dit corpus uit spec en code |
 | Buiten scope | accounts/CIAM, kaart-UI, WordPress/CMS, spraak (ASR), semantic ranker, multi-region |
 
 ## 3. Aanpak: application-owned orchestration

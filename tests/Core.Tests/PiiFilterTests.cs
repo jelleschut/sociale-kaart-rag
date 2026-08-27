@@ -33,12 +33,14 @@ public class PiiFilterTests
         Assert.Contains("123456789", r.Text);
     }
 
-    [Fact]
-    public void Postcode_without_house_number_is_kept()
+    [Theory]
+    [InlineData("welke hulp is er in 2511CV?")]
+    [InlineData("Postbus 12345 2500AB")]
+    public void Postcode_without_house_number_is_kept(string input)
     {
-        var r = PiiFilter.Redact("welke hulp is er in 2511CV?");
+        var r = PiiFilter.Redact(input);
         Assert.False(r.Redacted);
-        Assert.Equal("welke hulp is er in 2511CV?", r.Text);
+        Assert.Equal(input, r.Text);
     }
 
     [Fact]
@@ -63,4 +65,44 @@ public class PiiFilterTests
     [InlineData("999999999", false)]
     [InlineData("12345678", false)]
     public void Elfproef(string number, bool valid) => Assert.Equal(valid, PiiFilter.IsValidBsn(number));
+
+    [Fact]
+    public void Email_with_bsn_like_local_part_is_redacted_as_email_without_leaking_domain()
+    {
+        var r = PiiFilter.Redact("mail 111222333@example.org");
+        Assert.DoesNotContain("example.org", r.Text);
+        Assert.Contains("email", r.Types);
+    }
+
+    [Theory]
+    [InlineData("ik woon op 2511CV12")]
+    [InlineData("ik woon op 2511 cv 12-a")]
+    public void Compact_and_hyphenated_addresses_are_fully_redacted(string input)
+    {
+        var r = PiiFilter.Redact(input);
+        Assert.Contains("address", r.Types);
+        Assert.Equal("ik woon op [address]", r.Text);
+    }
+
+    [Theory]
+    [InlineData("bel +31 (0)6 12345678")]
+    [InlineData("bel 06 1234 5678")]
+    [InlineData("bel 06-12 34 56 78")]
+    public void Phone_formats_with_parentheses_and_grouping_are_redacted(string input)
+    {
+        var r = PiiFilter.Redact(input);
+        Assert.Equal("bel [phone]", r.Text);
+    }
+
+    [Fact]
+    public void Bsn_and_email_in_same_text_both_reported_and_nothing_leaks()
+    {
+        var r = PiiFilter.Redact("bsn 111222333, mail 111222333@example.org");
+        Assert.Equal(["bsn", "email"], r.Types.Order());
+        Assert.DoesNotContain("111222333", r.Text);
+        Assert.DoesNotContain("example.org", r.Text);
+    }
+
+    [Fact]
+    public void All_zero_is_not_a_valid_bsn() => Assert.False(PiiFilter.IsValidBsn("000000000"));
 }

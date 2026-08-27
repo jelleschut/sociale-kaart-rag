@@ -46,4 +46,6 @@ jobs:
             echo "Azure__EmbeddingDeployment=$(terraform output -raw embedding_deployment)"
           } >> "$GITHUB_ENV"
       - run: dotnet run --project src/Ingest -- index-create
-      - run: dotnet run --project src/Ingest -- ingest-${{ inputs.source }}
+      - env:
+          SOURCE: ${{ inputs.source }}
+        run: dotnet run --project src/Ingest -- "ingest-$SOURCE"

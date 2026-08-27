@@ -1,10 +1,18 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using SocialeKaartRag.Core.Retrieval;
 
 namespace SocialeKaartRag.Core.Generation;
 
-public static class Prompts
+public static partial class Prompts
 {
+    // Elke open- of sluit-tag van <source> in brontekst wordt onschadelijk gemaakt ('<' wordt '&lt;'),
+    // zodat een chunk geen tweede, vervalst bronblok kan openen of het echte kan sluiten.
+    [GeneratedRegex(@"</?source", RegexOptions.IgnoreCase)]
+    private static partial Regex SourceTag();
+
+    internal static string NeutraliseTags(string text) => SourceTag().Replace(text, m => "&lt;" + m.Value[1..]);
+
     /// <summary>Statisch → prompt-cachebaar. Bronnen komen NOOIT hierin (spec §4.3 stap 4).</summary>
     public const string System =
         """
@@ -30,7 +38,7 @@ public static class Prompts
               .Append("\" url=\"").Append(h.SourceUrl ?? "")
               .Append("\" heading=\"").Append((h.HeadingPath ?? "").Replace("\"", "'"))
               .AppendLine("\">");
-            sb.AppendLine(h.Text.Replace("</source", "<\\/source", StringComparison.OrdinalIgnoreCase));
+            sb.AppendLine(NeutraliseTags(h.Text));
             sb.AppendLine("</source>");
         }
         return sb.ToString();

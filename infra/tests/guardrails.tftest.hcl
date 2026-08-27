@@ -19,6 +19,10 @@ run "model_quota_is_low" {
     condition     = azurerm_cognitive_deployment.chat.sku[0].capacity <= 20
     error_message = "Chat-TPM te hoog voor demo-budget."
   }
+  assert {
+    condition     = azurerm_cognitive_deployment.chat.model[0].name == "gpt-4.1-mini"
+    error_message = "Chat-model moet gpt-4.1-mini zijn (gpt-4o-mini is gedeprecieerd)."
+  }
 }
 
 run "app_scales_to_zero_single_replica" {

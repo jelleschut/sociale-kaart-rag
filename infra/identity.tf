@@ -24,6 +24,8 @@ resource "azurerm_role_assignment" "app" {
 
 # Operator (the identity running terraform: developer locally or CI identity) gets the same data roles
 # so Ingest and local integration tests work with DefaultAzureCredential.
+# Geen principal_type: de operator is een User (lokaal) of ServicePrincipal (CI/OIDC); de provider
+# zoekt het type zelf op. De app-identity hierboven heeft het wél nodig omdat die in dezelfde apply ontstaat.
 resource "azurerm_role_assignment" "operator" {
   for_each             = local.app_roles
   principal_id         = data.azurerm_client_config.current.object_id

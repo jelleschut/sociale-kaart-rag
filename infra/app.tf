@@ -46,6 +46,14 @@ resource "azurerm_container_app" "api" {
         name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
         value = azurerm_application_insights.main.connection_string
       }
+      env {
+        name  = "Azure__ChatDeployment"
+        value = azurerm_cognitive_deployment.chat.name
+      }
+      env {
+        name  = "Azure__EmbeddingDeployment"
+        value = azurerm_cognitive_deployment.embedding.name
+      }
     }
   }
 
@@ -56,5 +64,11 @@ resource "azurerm_container_app" "api" {
       latest_revision = true
       percentage      = 100
     }
+  }
+
+  # Image wordt door deploy.yml gezet via `az containerapp update`; Terraform beheert alleen de
+  # eerste (placeholder-)image zodat een apply zonder -var de app niet terugzet.
+  lifecycle {
+    ignore_changes = [template[0].container[0].image]
   }
 }

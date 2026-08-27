@@ -8,3 +8,5 @@ output "appinsights_connection_string" {
   value     = azurerm_application_insights.main.connection_string
   sensitive = true
 }
+output "chat_deployment" { value = azurerm_cognitive_deployment.chat.name }
+output "embedding_deployment" { value = azurerm_cognitive_deployment.embedding.name }

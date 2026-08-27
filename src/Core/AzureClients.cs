@@ -23,7 +23,8 @@ public static class AzureClients
     {
         var opts = config.GetSection("Azure").Get<AzureOptions>()
                    ?? throw new InvalidOperationException("Sectie Azure ontbreekt (OpenAiEndpoint/SearchEndpoint/StorageAccountUrl).");
-        var credential = new DefaultAzureCredential();
+        // Headless: managed identity in de Container App, az CLI lokaal; nooit een browser-popup.
+        var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions { ExcludeInteractiveBrowserCredential = true });
 
         services.AddSingleton(opts);
         services.AddSingleton(new AzureOpenAIClient(new Uri(opts.OpenAiEndpoint), credential));

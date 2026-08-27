@@ -21,6 +21,7 @@ public sealed record Chunk
     public double? Lon { get; init; }
     public required string Text { get; init; }
 
+    // SHA-1 puur als stabiele identifier/fingerprint, geen security-hash.
     public static string MakeId(string corpus, string sourceId) => Sha1($"{corpus}|{sourceId}");
     public static string HashContent(string text) => Sha1(text);
 

@@ -12,3 +12,4 @@ crash.log
 infra/bootstrap.local.json
 appsettings.Development.json
 .env
+infra/tfplan

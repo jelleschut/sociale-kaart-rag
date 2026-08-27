@@ -8,6 +8,13 @@ resource "azurerm_cognitive_account" "openai" {
   local_auth_enabled            = false
   public_network_access_enabled = true
   tags                          = var.tags
+
+  identity {
+    type = "SystemAssigned"
+  }
+  # DLP (CKV_AZURE_247): het OpenAI-account mag zelf nergens naartoe (geen fqdns nodig voor onze flows).
+  outbound_network_access_restricted = true
+  fqdns                              = []
 }
 
 resource "azurerm_cognitive_deployment" "chat" {

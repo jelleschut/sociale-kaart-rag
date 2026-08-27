@@ -32,6 +32,7 @@ public sealed class OpenAiIntentClassifier(ChatClient chat) : IIntentClassifier
         corpus: social-map voor sociale-kaart-domeinen; kb voor platform_kennis
         """; // platform_kennis/kb = POC-corpus, verdwijnt na plan 2
 
+    // Enum-lijsten hier én in SystemPrompt: platform_kennis/kb = POC-corpus, verdwijnt na plan 2 (beide bijwerken).
     public static readonly string SchemaJson = """
         { "type": "object", "additionalProperties": false,
           "properties": {
@@ -50,7 +51,17 @@ public sealed class OpenAiIntentClassifier(ChatClient chat) : IIntentClassifier
             [new SystemChatMessage(SystemPrompt), new UserChatMessage(redactedQuestion)],
             new ChatCompletionOptions { ResponseFormat = Schema, Temperature = 0, MaxOutputTokenCount = 60 },
             ct);
-        return JsonSerializer.Deserialize<Intent>(completion.Value.Content[0].Text)
-               ?? throw new InvalidOperationException("Classificatie leverde geen JSON.");
+        var c = completion.Value;
+        if (!string.IsNullOrEmpty(c.Refusal) || c.Content.Count == 0)
+            throw new InvalidOperationException("Classificatie geweigerd of leeg antwoord van het model.");
+        try
+        {
+            return JsonSerializer.Deserialize<Intent>(c.Content[0].Text)
+                   ?? throw new InvalidOperationException("Classificatie leverde geen JSON.");
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException("Classificatie leverde geen geldige JSON.", ex);
+        }
     }
 }

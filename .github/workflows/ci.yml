@@ -5,20 +5,19 @@ on:
   pull_request:
 permissions:
   contents: read
-  security-events: write
 jobs:
   build-test:
     name: build-test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           global-json-file: global.json
       - run: dotnet restore
       - run: dotnet build --no-restore -warnaserror
       - run: dotnet test --no-build --logger "trx" --results-directory TestResults
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: test-results
@@ -31,8 +30,8 @@ jobs:
       run:
         working-directory: infra
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
         with:
           terraform_version: "1.15.8"
       - run: terraform fmt -check -recursive
@@ -44,26 +43,27 @@ jobs:
     name: security-scans
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
       - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: semgrep
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: "p/csharp p/secrets p/github-actions"
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src semgrep/semgrep:1.175.0 \
+            semgrep scan --config p/csharp --config p/secrets --config p/github-actions --error --metrics=off
+      # Bewuste Free-tier/demo-afwijkingen; verantwoording per check in docs/adr/0003-free-tier-en-kosten.md
       - name: checkov (terraform)
-        uses: bridgecrewio/checkov-action@v12
+        uses: bridgecrewio/checkov-action@5659ddea96102e16d8f221b3d8402453c0b1c150 # v12
         with:
           directory: infra
           framework: terraform
           soft_fail: false
           skip_check: CKV_AZURE_59,CKV_AZURE_33,CKV_AZURE_206,CKV2_AZURE_1,CKV2_AZURE_33,CKV2_AZURE_40,CKV_AZURE_43
       - name: trivy (iac + fs)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .

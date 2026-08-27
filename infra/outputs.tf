@@ -4,6 +4,7 @@ output "search_endpoint" { value = "https://${azurerm_search_service.main.name}.
 output "storage_account_url" { value = azurerm_storage_account.main.primary_blob_endpoint }
 output "app_identity_client_id" { value = azurerm_user_assigned_identity.app.client_id }
 output "api_url" { value = "https://${azurerm_container_app.api.ingress[0].fqdn}" }
+output "app_name" { value = azurerm_container_app.api.name }
 output "appinsights_connection_string" {
   value     = azurerm_application_insights.main.connection_string
   sensitive = true

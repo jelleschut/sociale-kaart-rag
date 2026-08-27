@@ -61,7 +61,7 @@ jobs:
           directory: infra
           framework: terraform
           soft_fail: false
-          skip_check: CKV_AZURE_59,CKV_AZURE_33,CKV_AZURE_206,CKV2_AZURE_1,CKV2_AZURE_33,CKV2_AZURE_40,CKV_AZURE_43,CKV_AZURE_124,CKV_AZURE_134,CKV_AZURE_207,CKV_AZURE_208,CKV_AZURE_209,CKV2_AZURE_21,CKV2_AZURE_22
+          skip_check: CKV_AZURE_59,CKV_AZURE_33,CKV_AZURE_206,CKV2_AZURE_1,CKV2_AZURE_33,CKV2_AZURE_40,CKV_AZURE_43,CKV_AZURE_124,CKV_AZURE_134,CKV_AZURE_207,CKV_AZURE_208,CKV_AZURE_209,CKV2_AZURE_21,CKV2_AZURE_22,CKV_AZURE_247
       - name: trivy (iac + fs)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:

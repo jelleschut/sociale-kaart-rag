@@ -31,6 +31,7 @@ wordt bewust niet gedaan; elke afwijking staat hier met reden.
 | CKV_AZURE_209 | Search: SLA queries (≥3 replica's) | Idem |
 | CKV2_AZURE_21 | Storage: blob-logging voor reads | Traces zijn zelf de audit-trail; extra diagnostics kost Log Analytics-ingest |
 | CKV2_AZURE_22 | OpenAI: customer-managed key | Geen CMK-eis in demo; MMK |
+| CKV_AZURE_247 | OpenAI: data loss prevention | DLP staat aan (`outbound_network_access_restricted = true`, geen fqdns = niets mag naar buiten); checkov eist een niet-lege fqdns-lijst — false positive |
 
 Als een skip niet meer nodig blijkt (check slaagt), wordt hij verwijderd. Nieuwe skips
 komen alleen met een rij in deze tabel.

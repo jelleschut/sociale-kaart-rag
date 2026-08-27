@@ -10,6 +10,8 @@
 
 **Vaste keuzes (uit sessie 27-08):** repo publiek MIT `jelleschut/sociale-kaart-rag`; regio `swedencentral`; budget-mail `jelleschut@hotmail.com`; Azure-subscription `8a2b4868-a9c0-4122-bda8-8823c5c3f3e3`, tenant `dcce671c-da39-4756-bc1d-69a7f1a30264`; alle `az`-aanroepen draaien met `AZURE_CONFIG_DIR=C:\Users\JelleSchut\.azure-prive` (staat in het claude-thuis-profiel) en alle `gh`-aanroepen met `GH_CONFIG_DIR=C:\Users\JelleSchut\.gh-prive`.
 
+**Status 27-08-2026: alle 13 taken uitgevoerd en gemerged (PR #1–#12); gates 1–4 gehaald.** Afwijkingen t.o.v. de tekst hieronder: `gpt-4.1-mini` (Standard) i.p.v. gedeprecieerde `gpt-4o-mini`; embedding-SKU `GlobalStandard`; `Azure.Search.Documents` 12.0 en `Microsoft.ApplicationInsights` 3.x (metrics via `GetMetric`); image-update via `az containerapp update` met `lifecycle.ignore_changes`; bron-URL's gebruiken het id verbatim; extra hardening uit reviews (idempotente bootstrap, SHA-gepinde actions, `<source`-neutralisatie, PII-regex-verfijningen, trace-guards).
+
 **Buiten dit plan (eigen plannen later):** sociale-kaart-ingest met PDOK (spec §4.1a/§8, stap 5), eval-suite (§4.6, stap 6), htmx-UI + ADR's + README-architectuurplaat (§4.7/§9, stap 7). De API levert in dit plan JSON; de pagina komt in plan 3.
 
 ---
@@ -55,12 +57,12 @@ sociale-kaart-rag/
 - Create: `.gitignore`, `LICENSE`, `README.md`, `global.json`, `Directory.Build.props`, `SocialeKaartRag.sln`
 - Bestaat al: `docs/superpowers/specs/2026-08-27-sociale-kaart-rag-design.md`, `kb-chunks.jsonl` (nog niet gecommit)
 
-- [ ] **Step 1: Controleer git-identiteit en werkmap**
+- [x] **Step 1: Controleer git-identiteit en werkmap**
 
 Run: `cd C:\Users\JelleSchut\source\repos\sociale-kaart-rag; git config user.email; git status --short`
 Expected: `jelleschut@hotmail.com` en `?? kb-chunks.jsonl` (plus het plan-bestand). Als de e-mail anders is: `git config user.email jelleschut@hotmail.com` en stoppen als er commits met een werkadres zijn.
 
-- [ ] **Step 2: Schrijf `.gitignore`**
+- [x] **Step 2: Schrijf `.gitignore`**
 
 ```gitignore
 bin/
@@ -79,7 +81,7 @@ appsettings.Development.json
 .env
 ```
 
-- [ ] **Step 3: Schrijf `LICENSE` (MIT)**
+- [x] **Step 3: Schrijf `LICENSE` (MIT)**
 
 ```text
 MIT License
@@ -105,7 +107,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-- [ ] **Step 4: Schrijf `README.md` (stub; volledige versie in plan 3)**
+- [x] **Step 4: Schrijf `README.md` (stub; volledige versie in plan 3)**
 
 ```markdown
 # sociale-kaart-rag
@@ -122,7 +124,7 @@ ambitie, wel productie-discipline.
 Status: in aanbouw.
 ```
 
-- [ ] **Step 5: Schrijf `global.json` en `Directory.Build.props`**
+- [x] **Step 5: Schrijf `global.json` en `Directory.Build.props`**
 
 `global.json`:
 ```json
@@ -142,7 +144,7 @@ Status: in aanbouw.
 </Project>
 ```
 
-- [ ] **Step 6: Maak de solution en lege projecten**
+- [x] **Step 6: Maak de solution en lege projecten**
 
 Run (PowerShell, in de repo-root):
 ```powershell
@@ -162,14 +164,14 @@ dotnet build
 ```
 Expected: `Build succeeded` zonder warnings. (De templates zetten zelf `TargetFramework`; laat dat staan — `Directory.Build.props` is dan dubbel maar consistent.)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```powershell
 git add .gitignore LICENSE README.md global.json Directory.Build.props SocialeKaartRag.sln src tests kb-chunks.jsonl docs/superpowers/plans
 git commit -m "chore: solution-skelet, MIT-licentie en kb-chunks snapshot"
 ```
 
-- [ ] **Step 8: Maak de GitHub-repo en push**
+- [x] **Step 8: Maak de GitHub-repo en push**
 
 ```powershell
 gh repo create jelleschut/sociale-kaart-rag --public --source . --remote origin --description "RAG-gids sociale kaart op Azure AI Foundry + AI Search: guardrails, traceability, eval, Terraform" --push
@@ -177,7 +179,7 @@ gh repo view jelleschut/sociale-kaart-rag --json url,visibility
 ```
 Expected: `"visibility":"PUBLIC"` en `main` gepusht.
 
-- [ ] **Step 9: Branch protection op `main`**
+- [x] **Step 9: Branch protection op `main`**
 
 ```powershell
 gh api -X PUT repos/jelleschut/sociale-kaart-rag/branches/main/protection --input - <<'JSON'
@@ -197,7 +199,7 @@ Expected: JSON met `"required_status_checks"`. Vanaf nu: elke wijziging via bran
 **Files:**
 - Create: `infra/bootstrap.ps1`
 
-- [ ] **Step 1: Schrijf `infra/bootstrap.ps1`**
+- [x] **Step 1: Schrijf `infra/bootstrap.ps1`**
 
 ```powershell
 #requires -Version 7
@@ -268,12 +270,12 @@ gh variable set TFSTATE_RG --repo $Repo --body $StateRg
 Write-Host "Klaar. Backend: storage_account_name=$stateAccount resource_group_name=$StateRg container=tfstate key=sociale-kaart-rag.tfstate"
 ```
 
-- [ ] **Step 2: Draai de bootstrap**
+- [x] **Step 2: Draai de bootstrap**
 
 Run: `pwsh -File infra/bootstrap.ps1`
 Expected: alle secties zonder fout; laatste regel `Klaar. Backend: storage_account_name=stskrtfstate...`. Providerregistratie kan enkele minuten duren. Als `az ad signed-in-user show` faalt (geen Graph-rechten): die ene regel overslaan en je eigen object-id via portal toewijzen.
 
-- [ ] **Step 3: Verifieer OIDC-credential en variabelen**
+- [x] **Step 3: Verifieer OIDC-credential en variabelen**
 
 ```powershell
 az identity federated-credential list --identity-name id-skr-github-deploy -g rg-skr-tfstate --query "[].subject" -o tsv
@@ -281,7 +283,7 @@ gh variable list --repo jelleschut/sociale-kaart-rag
 ```
 Expected: drie subjects; vijf variabelen.
 
-- [ ] **Step 4: Commit via PR**
+- [x] **Step 4: Commit via PR**
 
 ```powershell
 git checkout -b chore/azure-bootstrap
@@ -300,7 +302,7 @@ git checkout main; git pull
 **Files:**
 - Create: `infra/versions.tf`, `infra/variables.tf`, `infra/main.tf`, `infra/observability.tf`, `infra/storage.tf`, `infra/search.tf`, `infra/ai.tf`, `infra/identity.tf`, `infra/app.tf`, `infra/budget.tf`, `infra/outputs.tf`, `infra/tests/guardrails.tftest.hcl`
 
-- [ ] **Step 1: `infra/versions.tf`**
+- [x] **Step 1: `infra/versions.tf`**
 
 ```hcl
 terraform {
@@ -326,7 +328,7 @@ provider "azurerm" {
 }
 ```
 
-- [ ] **Step 2: `infra/variables.tf`**
+- [x] **Step 2: `infra/variables.tf`**
 
 ```hcl
 variable "location" {
@@ -371,7 +373,7 @@ variable "tags" {
 }
 ```
 
-- [ ] **Step 3: `infra/main.tf`**
+- [x] **Step 3: `infra/main.tf`**
 
 ```hcl
 resource "random_string" "suffix" {
@@ -392,7 +394,7 @@ resource "azurerm_resource_group" "main" {
 }
 ```
 
-- [ ] **Step 4: `infra/observability.tf`**
+- [x] **Step 4: `infra/observability.tf`**
 
 ```hcl
 resource "azurerm_log_analytics_workspace" "main" {
@@ -416,7 +418,7 @@ resource "azurerm_application_insights" "main" {
 }
 ```
 
-- [ ] **Step 5: `infra/storage.tf`**
+- [x] **Step 5: `infra/storage.tf`**
 
 ```hcl
 resource "azurerm_storage_account" "main" {
@@ -459,7 +461,7 @@ resource "azurerm_storage_management_policy" "traces_retention" {
 }
 ```
 
-- [ ] **Step 6: `infra/search.tf`**
+- [x] **Step 6: `infra/search.tf`**
 
 ```hcl
 resource "azurerm_search_service" "main" {
@@ -474,7 +476,7 @@ resource "azurerm_search_service" "main" {
 }
 ```
 
-- [ ] **Step 7: `infra/ai.tf`**
+- [x] **Step 7: `infra/ai.tf`**
 
 ```hcl
 resource "azurerm_cognitive_account" "openai" {
@@ -519,7 +521,7 @@ resource "azurerm_cognitive_deployment" "embedding" {
 }
 ```
 
-- [ ] **Step 8: `infra/identity.tf`**
+- [x] **Step 8: `infra/identity.tf`**
 
 ```hcl
 resource "azurerm_user_assigned_identity" "app" {
@@ -558,7 +560,7 @@ resource "azurerm_role_assignment" "operator" {
 }
 ```
 
-- [ ] **Step 9: `infra/app.tf`**
+- [x] **Step 9: `infra/app.tf`**
 
 ```hcl
 resource "azurerm_container_app_environment" "main" {
@@ -623,7 +625,7 @@ resource "azurerm_container_app" "api" {
 }
 ```
 
-- [ ] **Step 10: `infra/budget.tf`**
+- [x] **Step 10: `infra/budget.tf`**
 
 ```hcl
 resource "azurerm_consumption_budget_subscription" "main" {
@@ -649,7 +651,7 @@ resource "azurerm_consumption_budget_subscription" "main" {
 }
 ```
 
-- [ ] **Step 11: `infra/outputs.tf`**
+- [x] **Step 11: `infra/outputs.tf`**
 
 ```hcl
 output "resource_group"        { value = azurerm_resource_group.main.name }
@@ -664,7 +666,7 @@ output "appinsights_connection_string" {
 }
 ```
 
-- [ ] **Step 12: Schrijf de Terraform-guardrail-test `infra/tests/guardrails.tftest.hcl`**
+- [x] **Step 12: Schrijf de Terraform-guardrail-test `infra/tests/guardrails.tftest.hcl`**
 
 ```hcl
 mock_provider "azurerm" {}
@@ -713,7 +715,7 @@ run "budget_over_25_is_rejected" {
 }
 ```
 
-- [ ] **Step 13: Formatteer, valideer en test zonder backend**
+- [x] **Step 13: Formatteer, valideer en test zonder backend**
 
 ```powershell
 cd infra
@@ -724,7 +726,7 @@ terraform test
 ```
 Expected: `Success! The configuration is valid.` en `Success! 5 passed, 0 failed.` Als `azurerm_search_service` het argument `authentication_failure_mode = null` of `semantic_search_sku = null` afkeurt: die regels verwijderen.
 
-- [ ] **Step 14: Init met echte backend, plan en apply**
+- [x] **Step 14: Init met echte backend, plan en apply**
 
 ```powershell
 $b = Get-Content infra/bootstrap.local.json | ConvertFrom-Json
@@ -736,7 +738,7 @@ terraform output
 ```
 Expected: ~20 resources, apply zonder fouten, outputs met endpoints. Bekende hobbels: (a) OpenAI-resource weigert met `SpecialFeatureOrQuotaIdUnavailable` → subscription heeft nog geen Azure OpenAI-toegang; aanvragen via https://aka.ms/oai/access en later opnieuw apply'en; (b) `gpt-4o-mini` versie afwijkend in swedencentral → `az cognitiveservices model list -l swedencentral --query "[?model.name=='gpt-4o-mini'].model.version" -o tsv` en versie aanpassen; (c) Free Search-tier bestaat al in de subscription → er mag er maar één per subscription zijn.
 
-- [ ] **Step 15: Gate 2 — managed identity kan Search en OpenAI aanroepen**
+- [x] **Step 15: Gate 2 — managed identity kan Search en OpenAI aanroepen**
 
 ```powershell
 az role assignment list --assignee (terraform output -raw app_identity_client_id) --query "[].roleDefinitionName" -o tsv
@@ -744,7 +746,7 @@ az consumption budget list --query "[].{name:name,amount:amount}" -o table
 ```
 Expected: vier rollen (Search Index Data Contributor, Search Service Contributor, Cognitive Services OpenAI User, Storage Blob Data Contributor) en budget `25`.
 
-- [ ] **Step 16: Commit via PR**
+- [x] **Step 16: Commit via PR**
 
 ```powershell
 cd ..
@@ -764,7 +766,7 @@ git checkout main; git pull
 **Files:**
 - Create: `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`, `.github/workflows/ingest.yml`, `src/Api/Dockerfile`
 
-- [ ] **Step 1: `src/Api/Dockerfile`**
+- [x] **Step 1: `src/Api/Dockerfile`**
 
 ```dockerfile
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
@@ -786,7 +788,7 @@ EXPOSE 8080
 ENTRYPOINT ["dotnet", "SocialeKaartRag.Api.dll"]
 ```
 
-- [ ] **Step 2: `.github/workflows/ci.yml`**
+- [x] **Step 2: `.github/workflows/ci.yml`**
 
 ```yaml
 name: ci
@@ -854,7 +856,7 @@ jobs:
 ```
 De `skip_check`-lijst dekt bewuste Free-tier/demo-keuzes (publieke ingress, geen private endpoints, LRS zonder CMK). Elke skip die je toevoegt hoort in ADR-0003 (plan 3).
 
-- [ ] **Step 3: `.github/workflows/deploy.yml`**
+- [x] **Step 3: `.github/workflows/deploy.yml`**
 
 ```yaml
 name: deploy
@@ -913,7 +915,7 @@ jobs:
         run: curl -fsS "$(terraform output -raw api_url)/healthz"
 ```
 
-- [ ] **Step 4: `.github/workflows/ingest.yml`**
+- [x] **Step 4: `.github/workflows/ingest.yml`**
 
 ```yaml
 name: ingest
@@ -960,7 +962,7 @@ jobs:
       - run: dotnet run --project src/Ingest -- ingest-${{ inputs.source }}
 ```
 
-- [ ] **Step 5: Maak de GitHub-environment `azure` met handmatige approval**
+- [x] **Step 5: Maak de GitHub-environment `azure` met handmatige approval**
 
 ```powershell
 gh api -X PUT repos/jelleschut/sociale-kaart-rag/environments/azure --input - <<'JSON'
@@ -969,7 +971,7 @@ JSON
 ```
 Haal het id op met `gh api user --jq .id` en vervang `REPLACE_WITH_USER_ID` vóór het uitvoeren.
 
-- [ ] **Step 6: Commit via PR en laat `ci` draaien**
+- [x] **Step 6: Commit via PR en laat `ci` draaien**
 
 ```powershell
 git checkout -b feat/workflows
@@ -989,7 +991,7 @@ Expected: drie checks groen (`build-test`, `iac`, `security-scans`). Rood in `se
 - Create: `src/Core/Chunks/Chunk.cs`, `src/Core/AzureClients.cs`
 - Test: `tests/Core.Tests/ChunkIdTests.cs`
 
-- [ ] **Step 1: Packages**
+- [x] **Step 1: Packages**
 
 ```powershell
 dotnet add src/Core package Azure.Search.Documents --version 11.6.0
@@ -1003,7 +1005,7 @@ dotnet add src/Core package Microsoft.Extensions.Options.ConfigurationExtensions
 ```
 Als een versie niet bestaat: `dotnet add package <naam>` zonder versie (laatste stabiele).
 
-- [ ] **Step 2: Schrijf de falende test `tests/Core.Tests/ChunkIdTests.cs`**
+- [x] **Step 2: Schrijf de falende test `tests/Core.Tests/ChunkIdTests.cs`**
 
 ```csharp
 using SocialeKaartRag.Core.Chunks;
@@ -1031,12 +1033,12 @@ public class ChunkIdTests
 }
 ```
 
-- [ ] **Step 3: Run — verwacht compile-fout**
+- [x] **Step 3: Run — verwacht compile-fout**
 
 Run: `dotnet test tests/Core.Tests`
 Expected: FAIL, `The type or namespace name 'Chunks' does not exist`.
 
-- [ ] **Step 4: Schrijf `src/Core/Chunks/Chunk.cs`**
+- [x] **Step 4: Schrijf `src/Core/Chunks/Chunk.cs`**
 
 ```csharp
 using System.Security.Cryptography;
@@ -1070,12 +1072,12 @@ public sealed record Chunk
 }
 ```
 
-- [ ] **Step 5: Run — verwacht groen**
+- [x] **Step 5: Run — verwacht groen**
 
 Run: `dotnet test tests/Core.Tests`
 Expected: `Passed! - Failed: 0, Passed: 2`.
 
-- [ ] **Step 6: Schrijf `src/Core/AzureClients.cs`**
+- [x] **Step 6: Schrijf `src/Core/AzureClients.cs`**
 
 ```csharp
 using Azure.AI.OpenAI;
@@ -1117,7 +1119,7 @@ public static class AzureClients
 }
 ```
 
-- [ ] **Step 7: Build en commit**
+- [x] **Step 7: Build en commit**
 
 ```powershell
 dotnet build
@@ -1135,7 +1137,7 @@ git push -u origin feat/core-chunk; gh pr create --fill; gh pr checks --watch; g
 - Create: `src/Ingest/Sources/KbChunksSource.cs`
 - Test: `tests/Ingest.Tests/KbChunksSourceTests.cs`
 
-- [ ] **Step 1: Schrijf de falende test**
+- [x] **Step 1: Schrijf de falende test**
 
 ```csharp
 using SocialeKaartRag.Ingest.Sources;
@@ -1183,12 +1185,12 @@ public class KbChunksSourceTests
 }
 ```
 
-- [ ] **Step 2: Run — verwacht compile-fout**
+- [x] **Step 2: Run — verwacht compile-fout**
 
 Run: `dotnet test tests/Ingest.Tests`
 Expected: FAIL, `KbChunksSource` bestaat niet.
 
-- [ ] **Step 3: Schrijf `src/Ingest/Sources/KbChunksSource.cs`**
+- [x] **Step 3: Schrijf `src/Ingest/Sources/KbChunksSource.cs`**
 
 ```csharp
 using System.Runtime.CompilerServices;
@@ -1276,17 +1278,17 @@ public static class KbChunksSource
 }
 ```
 
-- [ ] **Step 4: Run — verwacht groen**
+- [x] **Step 4: Run — verwacht groen**
 
 Run: `dotnet test tests/Ingest.Tests`
 Expected: `Passed: 2`. Als `ToListAsync` ontbreekt: `dotnet add tests/Ingest.Tests package System.Linq.Async`.
 
-- [ ] **Step 5: Controleer de URL-mapping tegen de echte export**
+- [x] **Step 5: Controleer de URL-mapping tegen de echte export**
 
 Run: `python -c "import json;print({json.loads(l)['type'] for l in open('kb-chunks.jsonl',encoding='utf-8')})"`
 Expected: set van types, bv. `{'topic','runbook','decision','reference'}`. Staat er een type dat niet in `SourceUrlFor` zit: mapping uitbreiden en test toevoegen.
 
-- [ ] **Step 6: Commit via PR**
+- [x] **Step 6: Commit via PR**
 
 ```powershell
 git checkout -b feat/ingest-kb-source
@@ -1302,7 +1304,7 @@ git push -u origin feat/ingest-kb-source; gh pr create --fill; gh pr checks --wa
 **Files:**
 - Create: `src/Core/Retrieval/KbIndex.cs`, `src/Core/Retrieval/ISearchTool.cs`, `src/Core/Retrieval/AzureSearchTool.cs`, `src/Ingest/Embedder.cs`, `src/Ingest/IndexUpserter.cs`, `src/Ingest/Program.cs` (vervangen)
 
-- [ ] **Step 1: `src/Core/Retrieval/KbIndex.cs` — indexschema en document-dto**
+- [x] **Step 1: `src/Core/Retrieval/KbIndex.cs` — indexschema en document-dto**
 
 ```csharp
 using Azure.Search.Documents.Indexes;
@@ -1377,7 +1379,7 @@ public sealed class SearchDocumentDto
 }
 ```
 
-- [ ] **Step 2: `src/Core/Retrieval/ISearchTool.cs`**
+- [x] **Step 2: `src/Core/Retrieval/ISearchTool.cs`**
 
 ```csharp
 namespace SocialeKaartRag.Core.Retrieval;
@@ -1397,7 +1399,7 @@ public interface ISearchTool
 }
 ```
 
-- [ ] **Step 3: `src/Core/Retrieval/AzureSearchTool.cs` — hybrid query**
+- [x] **Step 3: `src/Core/Retrieval/AzureSearchTool.cs` — hybrid query**
 
 ```csharp
 using Azure.Search.Documents;
@@ -1444,7 +1446,7 @@ public sealed class AzureSearchTool(SearchIndexClient indexClient, EmbeddingClie
 }
 ```
 
-- [ ] **Step 4: `src/Ingest/Embedder.cs`**
+- [x] **Step 4: `src/Ingest/Embedder.cs`**
 
 ```csharp
 using OpenAI.Embeddings;
@@ -1478,7 +1480,7 @@ public sealed class Embedder(EmbeddingClient client)
 }
 ```
 
-- [ ] **Step 5: `src/Ingest/IndexUpserter.cs`**
+- [x] **Step 5: `src/Ingest/IndexUpserter.cs`**
 
 ```csharp
 using Azure.Search.Documents;
@@ -1518,7 +1520,7 @@ public sealed class IndexUpserter(SearchIndexClient indexClient, Embedder embedd
 }
 ```
 
-- [ ] **Step 6: `src/Ingest/Program.cs` (vervang de template-inhoud)**
+- [x] **Step 6: `src/Ingest/Program.cs` (vervang de template-inhoud)**
 
 ```csharp
 using Azure.Search.Documents.Indexes;
@@ -1578,7 +1580,7 @@ switch (verb)
 }
 ```
 
-- [ ] **Step 7: Build en draai ingest lokaal tegen live Azure (gate 3)**
+- [x] **Step 7: Build en draai ingest lokaal tegen live Azure (gate 3)**
 
 ```powershell
 dotnet build
@@ -1592,7 +1594,7 @@ dotnet run --project src/Ingest -- query hoe werkt sops met age keys
 ```
 Expected: `index 'kb' aanwezig`, `gelezen: 388 geldig, 0 ongeldig`, `klaar: 388 chunks`, en de query geeft ~6 hits met score, `sourceId`, categorie, `sourceUrl` (provenance zichtbaar → gate 3). RBAC-rolen kunnen tot ~5 min na apply nodig hebben; 403 → even wachten. Free-tier limiet 50 MB: 388 chunks × 1536 floats ≈ 2,5 MB, ruim binnen.
 
-- [ ] **Step 8: Commit via PR**
+- [x] **Step 8: Commit via PR**
 
 ```powershell
 git checkout -b feat/retrieval-ingest
@@ -1609,7 +1611,7 @@ git push -u origin feat/retrieval-ingest; gh pr create --fill; gh pr checks --wa
 - Create: `src/Core/Policy/PiiFilter.cs`
 - Test: `tests/Core.Tests/PiiFilterTests.cs`
 
-- [ ] **Step 1: Schrijf de falende tests**
+- [x] **Step 1: Schrijf de falende tests**
 
 ```csharp
 using SocialeKaartRag.Core.Policy;
@@ -1667,12 +1669,12 @@ public class PiiFilterTests
 }
 ```
 
-- [ ] **Step 2: Run — verwacht compile-fout**
+- [x] **Step 2: Run — verwacht compile-fout**
 
 Run: `dotnet test tests/Core.Tests --filter PiiFilterTests`
 Expected: FAIL, `PiiFilter` bestaat niet.
 
-- [ ] **Step 3: Schrijf `src/Core/Policy/PiiFilter.cs`**
+- [x] **Step 3: Schrijf `src/Core/Policy/PiiFilter.cs`**
 
 ```csharp
 using System.Text.RegularExpressions;
@@ -1717,12 +1719,12 @@ public static partial class PiiFilter
 }
 ```
 
-- [ ] **Step 4: Run — verwacht groen**
+- [x] **Step 4: Run — verwacht groen**
 
 Run: `dotnet test tests/Core.Tests --filter PiiFilterTests`
 Expected: alle PiiFilter-tests `Passed`. Faalt `2511 CV 12a`: controleer dat `Address()` vóór `Phone()` draait (staat zo) en dat de 4 cijfers niet als telefoonnummer matchen.
 
-- [ ] **Step 5: Commit via PR**
+- [x] **Step 5: Commit via PR**
 
 ```powershell
 git checkout -b feat/policy-pii
@@ -1739,7 +1741,7 @@ git push -u origin feat/policy-pii; gh pr create --fill; gh pr checks --watch; g
 - Create: `src/Core/Policy/PolicyVersion.cs`, `src/Core/Policy/RefusalTexts.cs`, `src/Core/Policy/IntentClassifier.cs`, `src/Core/Policy/CitationFilter.cs`, `src/Core/Generation/AnswerModels.cs`
 - Test: `tests/Core.Tests/CitationFilterTests.cs`
 
-- [ ] **Step 1: `src/Core/Generation/AnswerModels.cs` (gedeeld door Policy en Generation)**
+- [x] **Step 1: `src/Core/Generation/AnswerModels.cs` (gedeeld door Policy en Generation)**
 
 ```csharp
 using System.Text.Json.Serialization;
@@ -1757,7 +1759,7 @@ public sealed record Answer(
     [property: JsonPropertyName("followUp")] string? FollowUp);
 ```
 
-- [ ] **Step 2: `src/Core/Policy/PolicyVersion.cs` en `RefusalTexts.cs`**
+- [x] **Step 2: `src/Core/Policy/PolicyVersion.cs` en `RefusalTexts.cs`**
 
 ```csharp
 namespace SocialeKaartRag.Core.Policy;
@@ -1787,7 +1789,7 @@ public static class RefusalTexts
 }
 ```
 
-- [ ] **Step 3: `src/Core/Policy/IntentClassifier.cs`**
+- [x] **Step 3: `src/Core/Policy/IntentClassifier.cs`**
 
 ```csharp
 using System.Text.Json;
@@ -1847,7 +1849,7 @@ public sealed class OpenAiIntentClassifier(ChatClient chat) : IIntentClassifier
 }
 ```
 
-- [ ] **Step 4: Schrijf de falende test `tests/Core.Tests/CitationFilterTests.cs`**
+- [x] **Step 4: Schrijf de falende test `tests/Core.Tests/CitationFilterTests.cs`**
 
 ```csharp
 using SocialeKaartRag.Core.Generation;
@@ -1886,12 +1888,12 @@ public class CitationFilterTests
 }
 ```
 
-- [ ] **Step 5: Run — verwacht compile-fout**
+- [x] **Step 5: Run — verwacht compile-fout**
 
 Run: `dotnet test tests/Core.Tests --filter CitationFilterTests`
 Expected: FAIL, `CitationFilter` bestaat niet.
 
-- [ ] **Step 6: `src/Core/Policy/CitationFilter.cs`**
+- [x] **Step 6: `src/Core/Policy/CitationFilter.cs`**
 
 ```csharp
 using SocialeKaartRag.Core.Generation;
@@ -1912,12 +1914,12 @@ public static class CitationFilter
 }
 ```
 
-- [ ] **Step 7: Run — verwacht groen**
+- [x] **Step 7: Run — verwacht groen**
 
 Run: `dotnet test tests/Core.Tests`
 Expected: alle tests `Passed`.
 
-- [ ] **Step 8: Commit via PR**
+- [x] **Step 8: Commit via PR**
 
 ```powershell
 git checkout -b feat/policy-intent-citations
@@ -1934,7 +1936,7 @@ git push -u origin feat/policy-intent-citations; gh pr create --fill; gh pr chec
 - Create: `src/Core/Generation/Prompts.cs`, `src/Core/Generation/IAnswerGenerator.cs`, `src/Core/Generation/OpenAiAnswerGenerator.cs`
 - Test: `tests/Core.Tests/PromptsTests.cs`
 
-- [ ] **Step 1: Schrijf de falende test**
+- [x] **Step 1: Schrijf de falende test**
 
 ```csharp
 using SocialeKaartRag.Core.Generation;
@@ -1968,12 +1970,12 @@ public class PromptsTests
 }
 ```
 
-- [ ] **Step 2: Run — verwacht compile-fout**
+- [x] **Step 2: Run — verwacht compile-fout**
 
 Run: `dotnet test tests/Core.Tests --filter PromptsTests`
 Expected: FAIL, `Prompts` bestaat niet.
 
-- [ ] **Step 3: `src/Core/Generation/Prompts.cs`**
+- [x] **Step 3: `src/Core/Generation/Prompts.cs`**
 
 ```csharp
 using System.Text;
@@ -2014,12 +2016,12 @@ public static class Prompts
 }
 ```
 
-- [ ] **Step 4: Run — verwacht groen**
+- [x] **Step 4: Run — verwacht groen**
 
 Run: `dotnet test tests/Core.Tests --filter PromptsTests`
 Expected: `Passed: 2`.
 
-- [ ] **Step 5: `src/Core/Generation/IAnswerGenerator.cs` en `OpenAiAnswerGenerator.cs`**
+- [x] **Step 5: `src/Core/Generation/IAnswerGenerator.cs` en `OpenAiAnswerGenerator.cs`**
 
 ```csharp
 using SocialeKaartRag.Core.Retrieval;
@@ -2084,7 +2086,7 @@ public sealed class OpenAiAnswerGenerator(ChatClient chat) : IAnswerGenerator
 }
 ```
 
-- [ ] **Step 6: Build en commit via PR**
+- [x] **Step 6: Build en commit via PR**
 
 ```powershell
 dotnet build
@@ -2102,7 +2104,7 @@ git push -u origin feat/generation; gh pr create --fill; gh pr checks --watch; g
 - Create: `src/Core/Trace/TraceRecord.cs`, `src/Core/Trace/CostEstimator.cs`, `src/Core/Trace/ITraceSink.cs`, `src/Core/Trace/BlobTraceSink.cs`, `src/Core/Trace/AppInsightsTraceSink.cs`
 - Test: `tests/Core.Tests/TraceRecordTests.cs`
 
-- [ ] **Step 1: Schrijf de falende tests**
+- [x] **Step 1: Schrijf de falende tests**
 
 ```csharp
 using System.Text.Json;
@@ -2140,12 +2142,12 @@ public class TraceRecordTests
 }
 ```
 
-- [ ] **Step 2: Run — verwacht compile-fout**
+- [x] **Step 2: Run — verwacht compile-fout**
 
 Run: `dotnet test tests/Core.Tests --filter TraceRecordTests`
 Expected: FAIL, `TraceRecord` bestaat niet.
 
-- [ ] **Step 3: `src/Core/Trace/TraceRecord.cs`**
+- [x] **Step 3: `src/Core/Trace/TraceRecord.cs`**
 
 ```csharp
 using System.Text.Json;
@@ -2193,7 +2195,7 @@ public sealed record TraceRecord
 ```
 Let op: de `[JsonConverter]` op de enum zonder naming policy zou `Answered` geven; de `JsonOptions`-converter met `SnakeCaseLower` wint alleen als de attribute weg is — **verwijder de `[JsonConverter(...)]`-regel boven de enum** en vertrouw op `JsonOptions` (de test verwacht `answered`).
 
-- [ ] **Step 4: `src/Core/Trace/CostEstimator.cs`**
+- [x] **Step 4: `src/Core/Trace/CostEstimator.cs`**
 
 ```csharp
 namespace SocialeKaartRag.Core.Trace;
@@ -2220,12 +2222,12 @@ public static class CostEstimator
 }
 ```
 
-- [ ] **Step 5: Run — verwacht groen**
+- [x] **Step 5: Run — verwacht groen**
 
 Run: `dotnet test tests/Core.Tests --filter TraceRecordTests`
 Expected: `Passed: 3`.
 
-- [ ] **Step 6: Sinks**
+- [x] **Step 6: Sinks**
 
 `src/Core/Trace/ITraceSink.cs`:
 ```csharp
@@ -2324,7 +2326,7 @@ public sealed class CompositeTraceSink(IEnumerable<ITraceSink> sinks, Microsoft.
 ```
 Voeg toe: `dotnet add src/Core package Microsoft.Extensions.Logging.Abstractions`.
 
-- [ ] **Step 7: Build en commit via PR**
+- [x] **Step 7: Build en commit via PR**
 
 ```powershell
 dotnet build; dotnet test
@@ -2343,7 +2345,7 @@ git push -u origin feat/trace; gh pr create --fill; gh pr checks --watch; gh pr 
 - Modify: `src/Api/Program.cs` (vervangen)
 - Test: `tests/Core.Tests/AskOrchestratorTests.cs` (orchestrator leeft in Api; verplaats hem naar Core zodat hij testbaar is: **maak `src/Core/AskOrchestrator.cs`** in plaats van in Api)
 
-- [ ] **Step 1: Schrijf de falende tests `tests/Core.Tests/AskOrchestratorTests.cs`**
+- [x] **Step 1: Schrijf de falende tests `tests/Core.Tests/AskOrchestratorTests.cs`**
 
 ```csharp
 using SocialeKaartRag.Core;
@@ -2458,12 +2460,12 @@ public class AskOrchestratorTests
 }
 ```
 
-- [ ] **Step 2: Run — verwacht compile-fout**
+- [x] **Step 2: Run — verwacht compile-fout**
 
 Run: `dotnet test tests/Core.Tests --filter AskOrchestratorTests`
 Expected: FAIL, `AskOrchestrator` bestaat niet.
 
-- [ ] **Step 3: `src/Core/AskOrchestrator.cs`**
+- [x] **Step 3: `src/Core/AskOrchestrator.cs`**
 
 ```csharp
 using System.Diagnostics;
@@ -2557,12 +2559,12 @@ public sealed class AskOrchestrator(
 }
 ```
 
-- [ ] **Step 4: Run — verwacht groen**
+- [x] **Step 4: Run — verwacht groen**
 
 Run: `dotnet test tests/Core.Tests`
 Expected: alle tests `Passed` (incl. 5 orchestrator-tests).
 
-- [ ] **Step 5: `src/Api/Program.cs` (vervang)**
+- [x] **Step 5: `src/Api/Program.cs` (vervang)**
 
 ```csharp
 using Azure.Search.Documents.Indexes;
@@ -2602,7 +2604,7 @@ app.MapGet("/healthz", () => Results.Ok(new { status = "ok", policyVersion = Pol
 app.Run();
 ```
 
-- [ ] **Step 6: `src/Api/AskEndpoint.cs`**
+- [x] **Step 6: `src/Api/AskEndpoint.cs`**
 
 ```csharp
 using System.ComponentModel.DataAnnotations;
@@ -2649,7 +2651,7 @@ public static class AskEndpoint
 ```
 Voeg toe: `dotnet add src/Api package Microsoft.ApplicationInsights` (transitief via Core aanwezig; alleen als build klaagt).
 
-- [ ] **Step 7: Lokaal draaien tegen live Azure — gate 4**
+- [x] **Step 7: Lokaal draaien tegen live Azure — gate 4**
 
 ```powershell
 dotnet build
@@ -2672,7 +2674,7 @@ az storage blob list --account-name (terraform -chdir=infra output -raw storage_
 ```
 Expected: trace-JSON met `piiRedacted: true`, `piiTypes: ["bsn"]`, geen vraagtekst; blob-lijst toont `2026/08/27.jsonl` en `by-id/<id>.json`. Als (2) escaleert op `low_retrieval_score`: druk de scores af via `dotnet run --project src/Ingest -- query ...` en verlaag `PolicyVersion.EscalationScoreThreshold` (RRF-scores liggen typisch 0,01–0,04); verhoog dan `PolicyVersion.Current` naar `1.0.1`.
 
-- [ ] **Step 8: Commit via PR, deploy en live-check**
+- [x] **Step 8: Commit via PR, deploy en live-check**
 
 ```powershell
 git checkout -b feat/api-ask
@@ -2690,7 +2692,7 @@ Expected: `healthz` ok vanaf de Container App-URL en een gecieerd antwoord. Koud
 
 ### Task 13: Afronding plan 1
 
-- [ ] **Step 1: README-status bijwerken**
+- [x] **Step 1: README-status bijwerken**
 
 Vervang in `README.md` de regel `Status: in aanbouw.` door:
 ```markdown
@@ -2699,14 +2701,14 @@ Status: stap 1–4 klaar — infra live (Sweden Central), `kb`-index gevuld met 
 Volgende: sociale-kaart-ingest met PDOK (plan 2), eval-suite (plan 3), htmx-UI + ADR's (plan 4).
 ```
 
-- [ ] **Step 2: Kostencheck**
+- [x] **Step 2: Kostencheck**
 
 ```powershell
 az consumption usage list --start-date (Get-Date).AddDays(-7).ToString("yyyy-MM-dd") --end-date (Get-Date).ToString("yyyy-MM-dd") --query "[].{r:instanceName,c:pretaxCost}" -o table 2>$null | Select-Object -First 20
 ```
 Expected: alle posten samen ver onder €25/maand-tempo; noteer het bedrag in de PR-beschrijving.
 
-- [ ] **Step 3: Commit via PR**
+- [x] **Step 3: Commit via PR**
 
 ```powershell
 git checkout -b docs/plan1-afronding

@@ -1,0 +1,15 @@
+namespace SocialeKaartRag.Core.Retrieval;
+
+public sealed record SearchHit(
+    string Id, string Corpus, string SourceId, string? SourceUrl, string? Category,
+    string? HeadingPath, string? LastVerified, string Text, double Score);
+
+public sealed record SearchQuery(string Text, string? Category = null, int TopK = 6);
+
+/// <summary>Enige tool-soort die de orchestrator kent (spec §4.2/§4.3 allow-list). Twee registraties: kb en social-map.</summary>
+public interface ISearchTool
+{
+    string Name { get; }      // "search_kb" | "search_social_map"
+    string Corpus { get; }    // "kb" | "social-map"
+    Task<IReadOnlyList<SearchHit>> SearchAsync(SearchQuery query, CancellationToken ct = default);
+}

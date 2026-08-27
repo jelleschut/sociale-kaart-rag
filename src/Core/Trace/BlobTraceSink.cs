@@ -18,7 +18,7 @@ public sealed class BlobTraceSink(BlobServiceClient blobs) : ITraceSink, ITraceR
         var line = JsonSerializer.Serialize(record, TraceRecord.JsonOptions) + "\n";
         var bytes = Encoding.UTF8.GetBytes(line);
 
-        var daily = _container.GetAppendBlobClient($"{record.Timestamp:yyyy/MM/dd}.jsonl");
+        var daily = _container.GetAppendBlobClient(record.Timestamp.ToString("yyyy'/'MM'/'dd", System.Globalization.CultureInfo.InvariantCulture) + ".jsonl");
         await daily.CreateIfNotExistsAsync(cancellationToken: ct);
         await daily.AppendBlockAsync(new MemoryStream(bytes), cancellationToken: ct);
 

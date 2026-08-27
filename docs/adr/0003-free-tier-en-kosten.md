@@ -24,6 +24,13 @@ wordt bewust niet gedaan; elke afwijking staat hier met reden.
 | CKV2_AZURE_33 | Storage: private endpoint | Zie CKV_AZURE_59 |
 | CKV2_AZURE_40 | Storage: shared key uit | Staat al uit (`shared_access_key_enabled = false`); check triggert op oudere provider-semantiek |
 | CKV_AZURE_43 | Storage: naamgevingsregel | Naam `st<prefix><suffix>` voldoet; false positive op interpolatie |
+| CKV_AZURE_124 | Search: publieke netwerktoegang uit | Free-tier-demo; geen private endpoint; auth via Entra ID/RBAC |
+| CKV_AZURE_134 | OpenAI: publieke netwerktoegang uit | Idem; Container App consumption heeft geen VNet-integratie in dit ontwerp |
+| CKV_AZURE_207 | Search: managed identity | Free-tier ondersteunt geen managed identity; Search hoeft zelf geen Azure-resources te benaderen (geen indexers) |
+| CKV_AZURE_208 | Search: SLA index-updates (≥2 replica's) | Free-tier heeft geen SLA (bewust, spec §5) |
+| CKV_AZURE_209 | Search: SLA queries (≥3 replica's) | Idem |
+| CKV2_AZURE_21 | Storage: blob-logging voor reads | Traces zijn zelf de audit-trail; extra diagnostics kost Log Analytics-ingest |
+| CKV2_AZURE_22 | OpenAI: customer-managed key | Geen CMK-eis in demo; MMK |
 
 Als een skip niet meer nodig blijkt (check slaagt), wordt hij verwijderd. Nieuwe skips
 komen alleen met een rij in deze tabel.

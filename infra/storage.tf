@@ -8,6 +8,15 @@ resource "azurerm_storage_account" "main" {
   allow_nested_items_to_be_public = false
   shared_access_key_enabled       = false
   tags                            = var.tags
+
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
+    container_delete_retention_policy {
+      days = 7
+    }
+  }
 }
 
 resource "azurerm_storage_container" "traces" {

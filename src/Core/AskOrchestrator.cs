@@ -74,15 +74,23 @@ public sealed class AskOrchestrator(
         }
         catch (Exception)
         {
-            await trace.WriteAsync(record with { Outcome = TraceOutcome.Error, LatencyMs = sw.ElapsedMilliseconds }, CancellationToken.None);
+            await WriteTrace(record with { Outcome = TraceOutcome.Error, LatencyMs = sw.ElapsedMilliseconds });
             throw;
         }
     }
 
     private async Task<AskResult> Finish(TraceRecord record, TraceOutcome outcome, string? reason, string? message, Answer? answer, List<SourceRef> sources, Stopwatch sw)
     {
-        await trace.WriteAsync(record with { Outcome = outcome, RefusalReason = reason, LatencyMs = sw.ElapsedMilliseconds }, CancellationToken.None);
+        await WriteTrace(record with { Outcome = outcome, RefusalReason = reason, LatencyMs = sw.ElapsedMilliseconds });
         return new AskResult(record.CorrelationId, outcome, message, answer, sources, record.PolicyVersion);
+    }
+
+    /// <summary>Precies één trace per request; een falende sink mag het antwoord niet blokkeren en geen tweede
+    /// (error-)trace uitlokken. CompositeTraceSink logt sink-fouten zelf; dit is de laatste vangrail.</summary>
+    private async Task WriteTrace(TraceRecord record)
+    {
+        try { await trace.WriteAsync(record, CancellationToken.None); }
+        catch (Exception) { /* bewust: trace-fout is nooit fataal voor de aanvraag */ }
     }
 
     private static string Sha256(string s) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(s)));

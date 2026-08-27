@@ -28,7 +28,10 @@ builder.Services.AddSingleton<ITraceSink>(sp =>
     {
         var cfg = TelemetryConfiguration.CreateDefault();
         cfg.ConnectionString = aiConn;
-        sinks.Add(new AppInsightsTraceSink(new TelemetryClient(cfg)));
+        var telemetry = new TelemetryClient(cfg);
+        sinks.Add(new AppInsightsTraceSink(telemetry));
+        // Scale-to-zero: gebufferde telemetrie flushen vóór de container stopt.
+        sp.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping.Register(() => telemetry.Flush());
     }
     return new CompositeTraceSink(sinks, sp.GetRequiredService<ILogger<CompositeTraceSink>>());
 });

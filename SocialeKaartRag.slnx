@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Api/">
+    <Project Path="src/Api/SocialeKaartRag.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/SocialeKaartRag.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Ingest/">
+    <Project Path="src/Ingest/SocialeKaartRag.Ingest.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Core.Tests/">
+    <Project Path="tests/Core.Tests/SocialeKaartRag.Core.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Ingest.Tests/">
+    <Project Path="tests/Ingest.Tests/SocialeKaartRag.Ingest.Tests.csproj" />
+  </Folder>
+</Solution>

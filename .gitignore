@@ -1,0 +1,14 @@
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.lock.hcl
+crash.log
+infra/bootstrap.local.json
+appsettings.Development.json
+.env

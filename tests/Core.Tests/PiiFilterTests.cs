@@ -105,4 +105,23 @@ public class PiiFilterTests
 
     [Fact]
     public void All_zero_is_not_a_valid_bsn() => Assert.False(PiiFilter.IsValidBsn("000000000"));
+
+    [Theory]
+    [InlineData("bsn:111222333.", "bsn:[bsn].")]
+    [InlineData("(111222333).", "([bsn]).")]
+    [InlineData("mijn bsn is 111222333", "mijn bsn is [bsn]")]
+    public void Bsn_at_sentence_end_or_in_parentheses_is_redacted(string input, string expected)
+        => Assert.Equal(expected, PiiFilter.Redact(input).Text);
+
+    [Theory]
+    [InlineData("de code is 0612 en 34567")]
+    [InlineData("op 06-12-2023 om 12:34")]
+    [InlineData("in 2023 is er 12 procent")]
+    [InlineData("2511CV is mijn postcode, 12 uur")]
+    public void Ordinary_numbers_dates_and_words_are_not_addresses(string input)
+    {
+        var r = PiiFilter.Redact(input);
+        Assert.DoesNotContain("address", r.Types);
+        Assert.Equal(input, r.Text);
+    }
 }

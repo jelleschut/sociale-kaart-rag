@@ -7,7 +7,9 @@ public sealed record PiiResult(string Text, bool Redacted, IReadOnlyList<string>
 /// <summary>Regex-PII-filter op de vraag (spec §4.3 stap 1). Alleen typen worden gelogd, nooit waarden.</summary>
 public static partial class PiiFilter
 {
-    [GeneratedRegex(@"(?<![\w@.])\d{9}(?![\w@.])")]
+    // Niet voorafgegaan door een woordteken/@/punt; aan het eind mag een punt (zinseinde) of haakje staan,
+    // maar geen decimaal vervolg (punt gevolgd door een cijfer) — dat is een getal, geen BSN.
+    [GeneratedRegex(@"(?<![\w@.])\d{9}(?![\w@])(?!\.\d)")]
     private static partial Regex Bsn();
 
     [GeneratedRegex(@"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")]
@@ -17,8 +19,11 @@ public static partial class PiiFilter
     [GeneratedRegex(@"(?<!\d)(?:\+31|0031)[\s-]?(?:\(0\)|0)?[\s-]?(?:6(?:[\s-]?\d){8}|\d{2,3}(?:[\s-]?\d){6,7})(?!\d)|(?<!\d)0(?:6(?:[\s-]?\d){8}|\d{2,3}(?:[\s-]?\d){6,7})(?!\d)")]
     private static partial Regex Phone();
 
-    // postcode gevolgd door huisnummer (evt. toevoeging) = adres; postcode alleen blijft staan (grofmazige locatie mag)
-    [GeneratedRegex(@"(?<!\d)\d{4}\s?[A-Za-z]{2}\s*\d{1,5}(?:[\s-]?[A-Za-z])?(?![A-Za-z0-9])")]
+    // postcode gevolgd door huisnummer (evt. toevoeging) = adres; postcode alleen blijft staan (grofmazige locatie mag).
+    // NL-postcodes beginnen met 1-9 (geen 0xxx); geen datumcontext ervoor (bv. "06-12-2023"); de lettergroep
+    // mag geen gewoon Nederlands tweeletterwoord zijn (en/om/is/er/...), anders herkent dit jaartal+woord+getal
+    // (bv. "2023 is er 12") ten onrechte als adres; het huisnummer mag niet gevolgd worden door ":" (tijdsnotatie).
+    [GeneratedRegex(@"(?<![\d\-/.])(?<!\d[-/.])(?:[1-9]\d{3})\s?(?!(?:en|om|in|op|is|er|of|te|de|na|al|nu|ja|zo|ik|je|we|ze|me|er|el|un)\b)[A-Za-z]{2}\s*\d{1,5}(?:[\s-]?[A-Za-z])?(?![A-Za-z0-9:])")]
     private static partial Regex Address();
 
     public static PiiResult Redact(string input)

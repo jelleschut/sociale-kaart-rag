@@ -10,32 +10,47 @@ public sealed partial class OsmOverpassSource(HttpClient http)
 {
     public const string Endpoint = "https://overpass-api.de/api/interpreter";
     public const string Attribution = "© OpenStreetMap-bijdragers (ODbL 1.0)";
-    public const string Query =
-        """
+
+    /// <summary>OSM-naam van het gebied → gemeentenaam zoals opgeslagen in SocialMapRecord.Municipality.</summary>
+    public static readonly (string OsmName, string Municipality)[] Municipalities =
+    [
+        ("Den Haag", "Den Haag"),
+        ("Zoetermeer", "Zoetermeer"),
+    ];
+
+    /// <summary>Overpass QL geldig voor precies één gemeente, scoped op OSM-gebiedsnaam.</summary>
+    public static string QueryFor(string municipalityOsmName) =>
+        $"""
         [out:json][timeout:120];
-        area["name"="Den Haag"]["admin_level"="8"]->.dh;
-        area["name"="Zoetermeer"]["admin_level"="8"]->.zm;
+        area["name"="{municipalityOsmName}"]["admin_level"="8"]->.a;
         (
-          nwr(area.dh)["amenity"~"^(social_facility|community_centre|social_centre)$"];
-          nwr(area.zm)["amenity"~"^(social_facility|community_centre|social_centre)$"];
-          nwr(area.dh)["healthcare"]; nwr(area.zm)["healthcare"];
+          nwr(area.a)["amenity"~"^(social_facility|community_centre|social_centre)$"];
+          nwr(area.a)["healthcare"];
         );
         out tags center;
         """;
 
     public async Task<(List<SocialMapRecord> Records, int Skipped)> FetchAllAsync(CancellationToken ct = default)
     {
-        using var content = new FormUrlEncodedContent([new KeyValuePair<string, string>("data", Query)]);
-        using var req = new HttpRequestMessage(HttpMethod.Post, Endpoint) { Content = content };
-        req.Headers.UserAgent.ParseAdd(PageFetcher.UserAgent);
-        using var resp = await http.SendAsync(req, ct);
-        resp.EnsureSuccessStatusCode();
-        return ParseWithReport(await resp.Content.ReadAsStringAsync(ct));
+        var records = new List<SocialMapRecord>();
+        var skipped = 0;
+        foreach (var (osmName, municipality) in Municipalities)
+        {
+            using var content = new FormUrlEncodedContent([new KeyValuePair<string, string>("data", QueryFor(osmName))]);
+            using var req = new HttpRequestMessage(HttpMethod.Post, Endpoint) { Content = content };
+            req.Headers.UserAgent.ParseAdd(PageFetcher.UserAgent);
+            using var resp = await http.SendAsync(req, ct);
+            resp.EnsureSuccessStatusCode();
+            var (r, s) = ParseWithReport(await resp.Content.ReadAsStringAsync(ct), municipality);
+            records.AddRange(r);
+            skipped += s;
+        }
+        return (records, skipped);
     }
 
-    public static List<SocialMapRecord> Parse(string json) => ParseWithReport(json).Records;
+    public static List<SocialMapRecord> Parse(string json, string municipality) => ParseWithReport(json, municipality).Records;
 
-    public static (List<SocialMapRecord> Records, int Skipped) ParseWithReport(string json)
+    public static (List<SocialMapRecord> Records, int Skipped) ParseWithReport(string json, string municipality)
     {
         using var doc = JsonDocument.Parse(json);
         var list = new List<SocialMapRecord>(); var skipped = 0;
@@ -47,12 +62,12 @@ public sealed partial class OsmOverpassSource(HttpClient http)
             var category = Taxonomy.FromOsm(T("amenity"), T("healthcare"), T("social_facility"), T("office"));
             if (string.IsNullOrWhiteSpace(name) || category is null) { skipped++; continue; }
             var (lat, lon) = Coords(e);
-            var municipality = (T("addr:city") ?? "").Contains("zoetermeer", StringComparison.OrdinalIgnoreCase) ? "Zoetermeer" : "Den Haag";
             var type = e.GetProperty("type").GetString(); var id = e.GetProperty("id").GetInt64();
             list.Add(new SocialMapRecord
             {
                 Source = "osm", SourceId = $"osm:{type}/{id}", SourceUrl = $"https://www.openstreetmap.org/{type}/{id}",
-                Name = name, Category = category, Summary = Describe(tags), BodyText = T("description"),
+                Name = name, Category = category, Summary = Describe(tags),
+                BodyText = T("description") is { } d ? PageFetcher.RemovePersonalContacts(d) : null,
                 Municipality = municipality, Street = StreetWithoutNumber(T("addr:street")),
                 Postcode = NormalisePostcode(T("addr:postcode")),
                 Phone = T("phone") ?? T("contact:phone"), Website = T("website") ?? T("contact:website"),
@@ -98,6 +113,8 @@ public sealed partial class OsmOverpassSource(HttpClient http)
         return target is null ? label : $"{label} voor {target.Replace('_', ' ').Replace(';', ',').Replace(",", ", ")}";
     }
 
+    // Strips een trailend huisnummer van straatnamen. Bekende beperking (zeldzaam, geaccepteerd): pleinnamen
+    // die zelf op een getal eindigen, bv. "Plein 1813", worden ook afgekapt tot "Plein".
     [GeneratedRegex(@"\s+\d+[A-Za-z\-]*$")] private static partial Regex TrailingNumber();
     [GeneratedRegex(@"^[1-9]\d{3}[A-Z]{2}$")] private static partial Regex Postcode();
 }

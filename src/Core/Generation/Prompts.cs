@@ -11,7 +11,7 @@ public static partial class Prompts
     [GeneratedRegex(@"</?source", RegexOptions.IgnoreCase)]
     private static partial Regex SourceTag();
 
-    internal static string NeutraliseTags(string text) => SourceTag().Replace(text, m => "&lt;" + m.Value[1..]);
+    public static string NeutraliseTags(string text) => SourceTag().Replace(text, m => "&lt;" + m.Value[1..]);
 
     /// <summary>Statisch → prompt-cachebaar. Bronnen komen NOOIT hierin (spec §4.3 stap 4).</summary>
     public const string System =

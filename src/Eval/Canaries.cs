@@ -17,7 +17,9 @@ public static class Canaries
 
     public static List<Chunk> ToChunks(IEnumerable<Canary> canaries) => canaries.Select(c =>
     {
-        var (lat, lon) = Centroids[c.Municipality];
+        if (!Centroids.TryGetValue(c.Municipality, out var centroid))
+            throw new InvalidOperationException($"onbekende gemeente '{c.Municipality}' in canaries.yaml");
+        var (lat, lon) = centroid;
         return new Chunk
         {
             Id = Chunk.MakeId("social-map", "eval:" + c.Id), Corpus = "social-map", Source = "eval", SourceId = "eval:" + c.Id,

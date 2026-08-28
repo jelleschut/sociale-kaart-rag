@@ -15,4 +15,12 @@ public class ReportTests
         Assert.Contains("g1", md);
         Assert.Contains("policyVersion 1.0.0", md);
     }
+
+    [Fact]
+    public void Whitespace_in_detail_is_collapsed_so_the_table_row_stays_on_one_line()
+    {
+        var results = new[] { new CaseResult("r1", "refusal", true, "regel een\r\nregel  twee\ten\tdrie", 0.001) };
+        var md = Report.Render(Scoring.Summarise(results), results, new DateTimeOffset(2026, 8, 28, 12, 0, 0, TimeSpan.Zero), "1.0.0", TimeSpan.FromMinutes(3));
+        Assert.Contains("| regel een regel twee en drie |", md);
+    }
 }

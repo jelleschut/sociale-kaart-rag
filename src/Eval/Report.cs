@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace SocialeKaartRag.Eval;
 
@@ -27,7 +28,7 @@ public static class Report
         sb.AppendLine();
         sb.AppendLine("| Id | Categorie | Status | Toelichting | € |");
         sb.AppendLine("|---|---|---|---|---|");
-        foreach (var r in results) sb.AppendLine($"| {r.Id} | {r.Category} | {(r.Passed ? "✅" : "❌")} | {r.Detail.Replace("|", "/")} | {FormatNl(r.CostEur, "0.0000")} |");
+        foreach (var r in results) sb.AppendLine($"| {r.Id} | {r.Category} | {(r.Passed ? "✅" : "❌")} | {Regex.Replace(r.Detail, @"\s+", " ").Replace("|", "/")} | {FormatNl(r.CostEur, "0.0000")} |");
         sb.AppendLine();
         sb.AppendLine("Vragen en antwoorden staan niet in dit rapport (data-minimalisatie, spec §4.5); de cases staan in `eval/cases.yaml`.");
         return sb.ToString();

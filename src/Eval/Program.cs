@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using Azure;
+using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,11 +29,11 @@ var judge = new OpenAiGroundednessJudge(chat);
 var results = new List<CaseResult>();
 var sw = Stopwatch.StartNew();
 
-await Canaries.SeedAsync(sp.GetRequiredService<IndexUpserter>(), canaries);
-Console.WriteLine($"canaries geseed: {canaries.Count}");
 try
 {
-    await Task.Delay(TimeSpan.FromSeconds(5)); // indexering
+    await Canaries.SeedAsync(sp.GetRequiredService<IndexUpserter>(), canaries);
+    Console.WriteLine($"canaries geseed: {canaries.Count}");
+    await WaitUntilCanariesSearchableAsync(indexClient.GetSearchClient(SearchIndexes.SocialMap), canaries.Select(c => c.Id).ToList());
     foreach (var c in cases)
     {
         var sink = new CapturingSink();
@@ -46,12 +48,19 @@ try
 
         if (c.Category == "groundedness" && c.Expect.Judge && r.Answer is { Items.Length: > 0 })
         {
-            var search = indexClient.GetSearchClient(SearchIndexes.SocialMap);
-            var texts = new List<string>();
-            foreach (var id in r.Answer.Items.SelectMany(i => i.Citations).Distinct())
-                texts.Add((await search.GetDocumentAsync<SearchDocumentDto>(id)).Value.text);
-            var (v, tin, tout) = await judge.JudgeAsync(texts, r.Answer.Items.Select(i => i.Text).ToList());
-            verdict = v; judgeCost = CostEstimator.EstimateEur("gpt-4.1-mini", tin, tout, 0);
+            try
+            {
+                var search = indexClient.GetSearchClient(SearchIndexes.SocialMap);
+                var texts = new List<string>();
+                foreach (var id in r.Answer.Items.SelectMany(i => i.Citations).Distinct())
+                    texts.Add((await search.GetDocumentAsync<SearchDocumentDto>(id)).Value.text);
+                var (v, tin, tout, model) = await judge.JudgeAsync(texts, r.Answer.Items.Select(i => i.Text).ToList());
+                verdict = v; judgeCost = CostEstimator.EstimateEur(model, tin, tout, 0);
+            }
+            catch (Exception ex)
+            {
+                verdict = new JudgeVerdict(false, "judge-fout: " + ex.Message);
+            }
         }
         var scored = Scoring.Score(c, r, trace, verdict) with { CostEur = trace.EstimatedCostEur + judgeCost };
         results.Add(scored);
@@ -77,6 +86,29 @@ static string FindRepoRoot()
     var dir = new DirectoryInfo(AppContext.BaseDirectory);
     while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "SocialeKaartRag.slnx"))) dir = dir.Parent;
     return dir?.FullName ?? throw new InvalidOperationException("repo-root niet gevonden");
+}
+
+/// <summary>Polt elke 2 s of alle canary-id's al terug te vinden zijn in de index (i.p.v. een vaste wachttijd
+/// die te kort óf onnodig lang kan zijn), tot 60 s verstreken zijn.</summary>
+static async Task WaitUntilCanariesSearchableAsync(SearchClient search, IReadOnlyList<string> ids)
+{
+    var sw = Stopwatch.StartNew();
+    var pending = new HashSet<string>(ids);
+    while (true)
+    {
+        foreach (var id in pending.ToList())
+        {
+            try { await search.GetDocumentAsync<SearchDocumentDto>(id); pending.Remove(id); }
+            catch (RequestFailedException ex) when (ex.Status == 404) { }
+        }
+        if (pending.Count == 0)
+        {
+            Console.WriteLine($"canaries vindbaar na {sw.Elapsed.TotalSeconds:F0} s");
+            return;
+        }
+        if (sw.Elapsed >= TimeSpan.FromSeconds(60)) throw new InvalidOperationException("canaries niet vindbaar na 60 s");
+        await Task.Delay(TimeSpan.FromSeconds(2));
+    }
 }
 
 sealed class CapturingSink : ITraceSink

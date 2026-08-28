@@ -7,6 +7,9 @@ public static class Taxonomy
 {
     public static readonly string[] Categories = ["gezondheid", "werk_inkomen", "wonen", "vervoer", "welzijn", "mantelzorg"];
 
+    /// <summary>office=* wordt bewust nooit gemapt: in Den Haag zijn dat vooral internationale organisaties/tribunalen
+    /// (ambassades, ngo's als internationale hoven), geen sociale kaart-doelgroep. De parameter blijft in de
+    /// signatuur zodat een aanroeper 'm expliciet meegeeft en zichtbaar is dat het bewust genegeerd wordt.</summary>
     public static string? FromOsm(string? amenity, string? healthcare, string? socialFacility, string? office)
     {
         if (socialFacility is "assisted_living" or "group_home" or "nursing_home" or "shelter") return "wonen";
@@ -15,7 +18,8 @@ public static class Taxonomy
         if (healthcare is "counselling") return "welzijn";
         if (healthcare is "dentist") return null;
         if (healthcare is not null || amenity is "doctors" or "pharmacy" or "clinic" or "hospital") return "gezondheid";
-        if (office is "charity" or "ngo" or "association") return "welzijn";
+        // office=* bewust niet gemapt: in Den Haag zijn dat vooral internationale organisaties/tribunalen,
+        // geen sociale kaart-doelgroep (parameter blijft voor documentatie/signatuurstabiliteit).
         return null;
     }
 

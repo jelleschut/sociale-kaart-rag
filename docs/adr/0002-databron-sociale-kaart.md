@@ -22,8 +22,9 @@ Twee open bronnen, elk met eigen adapter en provenance:
    (rate-limited, robots.txt gerespecteerd, snapshot in Blob). Dekt de *information*-intent
    (regelingen: Wmo, schuldhulp, bijstand, mantelzorg, …).
 2. **OpenStreetMap** (Overpass): 820 locaties (wijkcentra, sociale voorzieningen, huisartsen,
-   apotheken, fysio, ngo's, verenigingen) met adres, telefoon, website, openingstijden en
-   coördinaten. Dekt de *find_help*-intent met geo.
+   apotheken, fysio en andere zorglocaties (`office=*` — ngo's/verenigingen — en tandartsen
+   bewust uitgesloten)) met adres, telefoon, website, openingstijden en coördinaten. Dekt de
+   *find_help*-intent met geo.
 
 Geo: OSM-coördinaten worden afgerond op 3 decimalen (≈ 100 m) en huisnummers worden niet
 opgeslagen; SC-producten krijgen de gemeente-centroïde (PDOK). Vragen met een postcode worden
@@ -50,4 +51,5 @@ via PDOK naar een punt vertaald en gefilterd op afstand.
 - Zoetermeer heeft minder OSM-dekking (85 POI's) en kortere SC-samenvattingen.
 - Persoonsgegevens: bronnen bevatten organisaties; pagina-tekst wordt gefilterd op e-mailadressen
   en telefoonnummers van personen (alleen organisatie-contact blijft) — zie Task 4.
+  OSM-`description`-tags gaan door hetzelfde PII-filter als paginatekst.
 - Het kb-POC-corpus vervalt zodra dit corpus live is (Task 9).

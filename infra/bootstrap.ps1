@@ -55,7 +55,13 @@ Write-Host "  $stateAccount/tfstate"
 Write-Host "== deploy identity + OIDC"
 az identity create -n $IdentityName -g $StateRg -l $Location | Out-Null
 $id = az identity show -n $IdentityName -g $StateRg | ConvertFrom-Json
-foreach ($sub in @("repo:${Repo}:environment:azure", "repo:${Repo}:ref:refs/heads/main", "repo:${Repo}:pull_request")) {
+# GitHub presenteert het OIDC-subject sinds 2026 ook met owner- en repo-id ("repo:owner@id/repo@id:..."); beide vormen registreren.
+$ownerId = gh api "users/$($Repo.Split('/')[0])" --jq .id
+$repoId  = gh api "repos/$Repo" --jq .id
+$repoWithIds = "$($Repo.Split('/')[0])@$ownerId/$($Repo.Split('/')[1])@$repoId"
+$subjects = @()
+foreach ($r in @($Repo, $repoWithIds)) { $subjects += "repo:${r}:environment:azure", "repo:${r}:ref:refs/heads/main", "repo:${r}:pull_request" }
+foreach ($sub in $subjects) {
   $fname = ($sub -replace '[^a-zA-Z0-9]', '-')
   if (-not (Test-AzExists { az identity federated-credential show --name $fname --identity-name $IdentityName -g $StateRg --query name -o tsv })) {
     az identity federated-credential create --name $fname --identity-name $IdentityName -g $StateRg `

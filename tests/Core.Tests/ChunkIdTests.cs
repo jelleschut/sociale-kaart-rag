@@ -7,9 +7,9 @@ public class ChunkIdTests
     [Fact]
     public void Id_is_deterministic_hash_of_corpus_and_source_id()
     {
-        var a = Chunk.MakeId("kb", "topic-age#00");
-        var b = Chunk.MakeId("kb", "topic-age#00");
-        var c = Chunk.MakeId("social-map", "topic-age#00");
+        var a = Chunk.MakeId("social-map", "topic-age#00");
+        var b = Chunk.MakeId("social-map", "topic-age#00");
+        var c = Chunk.MakeId("other-corpus", "topic-age#00");
         Assert.Equal(a, b);
         Assert.NotEqual(a, c);
         Assert.Matches("^[a-f0-9]{40}$", a);

@@ -13,11 +13,11 @@ public class GeoQueryTests
 
     [Fact]
     public void Filter_without_optional_parts()
-        => Assert.Equal("corpus eq 'kb'", AzureSearchTool.BuildFilter("kb", null, null, 5));
+        => Assert.Equal("corpus eq 'social-map'", AzureSearchTool.BuildFilter("social-map", null, null, 5));
 
     [Fact]
     public void Category_quotes_are_escaped()
-        => Assert.Contains("category eq 'a''b'", AzureSearchTool.BuildFilter("kb", "a'b", null, 5));
+        => Assert.Contains("category eq 'a''b'", AzureSearchTool.BuildFilter("social-map", "a'b", null, 5));
 
     [Fact]
     public void Attribution_is_read_from_tags()

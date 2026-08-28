@@ -4,10 +4,9 @@ using SocialeKaartRag.Core.Chunks;
 
 namespace SocialeKaartRag.Core.Retrieval;
 
-/// <summary>Schema van de twee indexen (spec §4.2). Zelfde document-model; "corpus" is het filterveld.</summary>
+/// <summary>Schema van de index (spec §4.2). "corpus" is het filterveld.</summary>
 public static class SearchIndexes
 {
-    public const string Kb = "kb";
     public const string SocialMap = "social-map";
     public const int EmbeddingDimensions = 1536; // text-embedding-3-small
     private const string VectorProfile = "hnsw-profile";

@@ -8,7 +8,7 @@ namespace SocialeKaartRag.Core.Retrieval;
 
 public sealed class AzureSearchTool(SearchIndexClient indexClient, EmbeddingClient embeddings, string corpus) : ISearchTool
 {
-    public string Name => corpus == SearchIndexes.Kb ? "search_kb" : "search_social_map";
+    public string Name => "search_social_map";
     public string Corpus => corpus;
 
     public async Task<IReadOnlyList<SearchHit>> SearchAsync(SearchQuery query, CancellationToken ct = default)

@@ -23,7 +23,7 @@ getest, elke keuze in een ADR.
 | Budget | ≤ €25/maand, afgedwongen met Azure Budget + alerts (50/80/100 %) en lage TPM-quota |
 | Stack | .NET 10 minimal API + htmx-pagina; Terraform; GitHub Actions met OIDC |
 | Model | `gpt-4.1-mini` (chat; **afwijking 27-08**: `gpt-4o-mini 2024-07-18` bleek sinds 31-03-2026 gedeprecieerd, en had 0 GlobalStandard-quota — chat draait op SKU `Standard`, embedding op `GlobalStandard`) en `text-embedding-3-small` (embeddings) via Azure AI Foundry/OpenAI-resource |
-| Corpus | (a) publieke sociale-kaart-data zorg & welzijn NL (organisaties/diensten, geen personen); (b) `kb-chunks.jsonl` uit soevereinlab-knowledge, ongewijzigd — **besluit 27-08: (b) is uitsluitend een tijdelijk POC-corpus** om de pijplijn end-to-end te bouwen; zodra (a) live is (plan 2) verdwijnen de `kb`-index, `ingest-kb`, de `platform_kennis`-intent en dit corpus uit spec en code |
+| Corpus | (a) publieke sociale-kaart-data zorg & welzijn NL (organisaties/diensten, geen personen) — (b) kb-POC-corpus verwijderd 28-08 (plan 2 Task 9) |
 | Buiten scope | accounts/CIAM, kaart-UI, WordPress/CMS, spraak (ASR), semantic ranker, multi-region |
 
 ## 3. Aanpak: application-owned orchestration
@@ -44,18 +44,16 @@ eigen unit-tests. Grenzen zijn interfaces; implementaties zijn vervangbaar.
 Pijplijn per bron: **bron → validatie → normalisatie → geocoding → chunking →
 embedding → index-upsert.**
 
-- Bron-adapters: `SocialMapSource` (open data, zie ADR-0002) en
-  `KbChunksSource` (leest `kb-chunks.jsonl`, één record = één chunk).
+- Bron-adapters: `SocialMapSource` (open data, zie ADR-0002).
 - Validatie: schema (verplichte velden, URL/telefoon-formaat); ongeldige records
   worden geteld en gerapporteerd, niet stilzwijgend overgeslagen.
 - Normalisatie: categorie-taxonomie (vaste lijst: gezondheid, werk & inkomen,
   wonen, vervoer, welzijn, mantelzorg), telefoon/URL-normalisatie, whitespace.
 - Geocoding: PDOK Locatieserver (gratis, NL). **Alleen op postcode-/straatniveau;
   huisnummers worden niet opgeslagen** (PSA-eis "grofmazige locatie").
-- Chunking: sociale kaart = één chunk per organisatie-dienst; kb = zoals aangeleverd.
+- Chunking: sociale kaart = één chunk per organisatie-dienst.
 - Provenance-metadata per chunk: `source`, `sourceId`, `sourceUrl`, `retrievedAt`,
-  `contentHash`, `corpus` (`social-map` | `kb`), `category`, `geo` (lat/lon),
-  `lastVerified` (kb).
+  `contentHash`, `corpus` (`social-map`), `category`, `geo` (lat/lon), `lastVerified`.
 - Embedding via `text-embedding-3-small`; upsert idempotent op `id` = hash van
   (`corpus`, `sourceId`).
 - Bron-snapshot (ruwe download + datum) naar Blob zodat ingestie reproduceerbaar is.
@@ -63,10 +61,10 @@ embedding → index-upsert.**
 
 ### 4.2 Retrieval (`src/Core/Retrieval`)
 
-- Twee AI Search-indexen: `social-map` en `kb`. Hybrid query (BM25 + vector),
+- AI Search-index `social-map`. Hybrid query (BM25 + vector),
   filter op `corpus` en optioneel `category`, top-k (default 6) met scores.
-- Interface `ISearchTool` met getypeerd schema; twee registraties
-  (`search_social_map`, `search_kb`). Geen andere tools bestaan.
+- Interface `ISearchTool` met getypeerd schema; één registratie
+  (`search_social_map`). Geen andere tools bestaan.
 
 ### 4.3 Policy (`src/Core/Policy`) — de gateway-laag in code
 

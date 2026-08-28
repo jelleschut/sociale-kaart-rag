@@ -14,12 +14,12 @@ Status (28-08-2026): **plan 2 klaar** — de `social-map`-index bevat 794 chunks
 voor Den Haag en Zoetermeer, met categorie, grofmazige geo (geen huisnummers) en attributie per bron. `/ask` filtert
 op categorie (uit de intent) en op afstand tot een postcode in de vraag (PDOK).
 
-Status (27-08-2026): **plan 1 klaar** — infra live in Sweden Central (`rg-skr-9asax`), `kb`-index gevuld
-met 388 POC-chunks, `POST /ask` geeft gecieerde antwoorden, weigert medisch advies en out-of-scope,
+Status (27-08-2026): **plan 1 klaar** — infra live in Sweden Central (`rg-skr-9asax`), tijdelijk
+POC-corpus (inmiddels verwijderd), `POST /ask` geeft gecieerde antwoorden, weigert medisch advies en out-of-scope,
 redigeert PII vóór retrieval en schrijft per request een trace (Blob + App Insights) zonder vraag- of
 antwoordtekst. CI: build/test, Terraform-checks, gitleaks, semgrep, checkov, trivy; deploy via OIDC.
 Volgende: sociale-kaart-ingest met PDOK (plan 2), eval-suite (plan 3), htmx-UI + ADR's (plan 4).
-Het soevereinlab-kb-corpus is tijdelijk (POC) en verdwijnt na plan 2.
+Het soevereinlab-kb-corpus was tijdelijk (POC) en is verwijderd (plan 2 Task 9).
 
 ## Bronnen en attributie
 
@@ -32,5 +32,4 @@ Het soevereinlab-kb-corpus is tijdelijk (POC) en verdwijnt na plan 2.
 | [PDOK Locatieserver](https://www.pdok.nl/) | postcode/gemeente → coördinaat | CC0 |
 
 Ingest: `dotnet run --project src/Ingest -- ingest-social-map` (of de workflow `ingest` met bron `social-map`).
-Het tijdelijke soevereinlab-kb-corpus verdwijnt in plan 2 Task 9.
 

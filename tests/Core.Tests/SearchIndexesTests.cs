@@ -9,8 +9,8 @@ public class SearchIndexesTests
     [Fact]
     public void Index_has_key_vector_and_filter_fields()
     {
-        var idx = SearchIndexes.Define("kb");
-        Assert.Equal("kb", idx.Name);
+        var idx = SearchIndexes.Define("social-map");
+        Assert.Equal("social-map", idx.Name);
         Assert.Contains(idx.Fields, f => f.Name == "id" && f.IsKey == true);
         Assert.Contains(idx.Fields, f => f.Name == "vector" && f.VectorSearchDimensions == SearchIndexes.EmbeddingDimensions);
         Assert.Contains(idx.Fields, f => f.Name == "corpus" && f.IsFilterable == true);

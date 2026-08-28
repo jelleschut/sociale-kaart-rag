@@ -48,7 +48,8 @@ public class AskHtmlTests
         var msg = outcome switch { TraceOutcome.RefusedMedical => Core.Policy.RefusalTexts.Medical, TraceOutcome.RefusedScope => Core.Policy.RefusalTexts.OutOfScope, _ => Core.Policy.RefusalTexts.Escalated };
         var html = AskHtml.Render(new AskResult("id0", outcome, msg, null, [], "1.0.1"));
         Assert.Contains(expected, html);
-        Assert.Contains("outcome-" + outcome.ToString().ToLowerInvariant(), html);
+        Assert.Contains("outcome-" + AskHtml.OutcomeClass(outcome), html);
+        Assert.Contains(outcome == TraceOutcome.RefusedMedical ? "outcome-refused_medical" : outcome == TraceOutcome.RefusedScope ? "outcome-refused_scope" : "outcome-escalated", html);
         Assert.DoesNotContain("badge-feit", html);
     }
 

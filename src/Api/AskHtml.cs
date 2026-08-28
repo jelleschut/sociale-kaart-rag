@@ -15,7 +15,7 @@ public static class AskHtml
     public static string Render(AskResult r)
     {
         var sb = new StringBuilder();
-        var outcome = r.Outcome.ToString().ToLowerInvariant();
+        var outcome = OutcomeClass(r.Outcome);
         sb.Append("<article class=\"result outcome-").Append(outcome).AppendLine("\">");
 
         if (r.Outcome != TraceOutcome.Answered || r.Answer is null)
@@ -60,4 +60,11 @@ public static class AskHtml
 
     private static bool IsSafeHttpUrl(string? url) =>
         Uri.TryCreate(url, UriKind.Absolute, out var u) && (u.Scheme == Uri.UriSchemeHttps || u.Scheme == Uri.UriSchemeHttp);
+
+    /// <summary>Zelfde snake_case als de JSON-API; de CSS-classes in site.css volgen deze namen.</summary>
+    public static string OutcomeClass(TraceOutcome o) => o switch
+    {
+        TraceOutcome.Answered => "answered", TraceOutcome.RefusedMedical => "refused_medical", TraceOutcome.RefusedScope => "refused_scope",
+        TraceOutcome.Escalated => "escalated", _ => "error",
+    };
 }

@@ -34,6 +34,8 @@ public static class AskEndpoint
 
         app.MapPost("/ask/fragment", async (HttpRequest request, IAskOrchestrator orchestrator, HttpContext http, CancellationToken ct) =>
         {
+            if (!request.HasFormContentType)
+                return Results.Content("<p class=\"message\">Verwacht een formulier (application/x-www-form-urlencoded).</p>", "text/html; charset=utf-8", statusCode: 400);
             var form = await request.ReadFormAsync(ct);
             var question = form["question"].ToString();
             if (string.IsNullOrWhiteSpace(question) || question.Length > MaxQuestionLength)
@@ -42,7 +44,7 @@ public static class AskEndpoint
             http.Response.Headers["X-Correlation-Id"] = correlationId;
             var result = await orchestrator.AskAsync(question, correlationId, ct);
             return Results.Content(AskHtml.Render(result), "text/html; charset=utf-8");
-        }).DisableAntiforgery();
+        }).DisableAntiforgery(); // defensief: er zijn geen cookies/sessies, dus geen CSRF-oppervlak; antiforgery is niet geregistreerd
 
         app.MapGet("/trace/{id}", async (string id, ITraceReader reader, CancellationToken ct) =>
         {

@@ -65,6 +65,13 @@ public class EndpointTests(ApiFactory f) : IClassFixture<ApiFactory>
     }
 
     [Fact]
+    public async Task Fragment_with_json_body_is_400_not_500()
+    {
+        var resp = await f.CreateClient().PostAsJsonAsync("/ask/fragment", new { question = "x" });
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+    }
+
+    [Fact]
     public async Task Json_ask_still_works()
     {
         var resp = await f.CreateClient().PostAsJsonAsync("/ask", new { question = "waar is hulp?" });

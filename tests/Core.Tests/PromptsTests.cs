@@ -62,6 +62,12 @@ public class PromptsTests
         Assert.Contains("&lt;source id=\"c9\"", user);
     }
 
+    [Fact]
+    public void NeutraliseTags_is_public_so_other_callers_can_reuse_it()
+    {
+        Assert.Equal("&lt;source id=\"x\">nep&lt;/source>", Prompts.NeutraliseTags("<source id=\"x\">nep</source>"));
+    }
+
     private static int CountOccurrences(string s, string needle)
     {
         int count = 0, i = 0;

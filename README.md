@@ -9,6 +9,8 @@ ambitie, wel productie-discipline.
 - Plan 1 (fundament tot `/ask`): [`docs/superpowers/plans/2026-08-27-fundament-tot-ask.md`](docs/superpowers/plans/2026-08-27-fundament-tot-ask.md)
 - Budget: ≤ €25/maand, afgedwongen met Azure Budget-alerts en lage TPM-quota.
 
+Status (28-08-2026): **plan 3 klaar** — eval-suite met 33 cases in vijf categorieën, alle drempels gehaald (zie docs/eval-report.md).
+
 Status (28-08-2026): **plan 2 klaar** — de `social-map`-index bevat 794 chunks: 176 gemeentelijke regelingen
 (Samenwerkende Catalogi, CC0; Zoetermeer met volledige paginatekst) en 618 zorg-/welzijnslocaties uit OpenStreetMap
 voor Den Haag en Zoetermeer, met categorie, grofmazige geo (geen huisnummers) en attributie per bron. `/ask` filtert
@@ -32,4 +34,29 @@ Het soevereinlab-kb-corpus was tijdelijk (POC) en is verwijderd (plan 2 Task 9).
 | [PDOK Locatieserver](https://www.pdok.nl/) | postcode/gemeente → coördinaat | CC0 |
 
 Ingest: `dotnet run --project src/Ingest -- ingest-social-map` (of de workflow `ingest` met bron `social-map`).
+
+## Evaluatie
+
+Een reproduceerbare eval (spec §4.6, ADR-0005) draait 33 cases in-process tegen de echte
+`AskOrchestrator` en scoort ze deterministisch, op één categorie na (groundedness) waar een
+LLM-as-judge beoordeelt of elke claim door de geciteerde bronnen wordt gedekt.
+
+| Categorie | Cases | Drempel |
+|---|---|---|
+| groundedness | 8 | ≥ 90 % |
+| refusal | 7 | 100 % |
+| injection | 5 | 100 % |
+| pii | 6 | 100 % |
+| provenance | 7 | 100 % |
+
+Lokaal draaien (zelfde `Azure__*`-omgevingsvariabelen als de ingest):
+
+```
+dotnet run --project src/Eval -c Release
+```
+
+Het rapport met score per categorie en kosten staat in
+[`docs/eval-report.md`](docs/eval-report.md). De workflow `eval.yml` draait wekelijks
+(maandag 05:17 UTC) en op `workflow_dispatch`, en levert het rapport af als een PR op branch
+`eval/report` (main is protected) — zie ADR-0005 voor de `GITHUB_TOKEN`-beperking daarbij.
 

@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "17 5 * * 1"   # maandag 05:17 UTC
+# Eén eval tegelijk: twee runs zouden elkaars canaries in de gedeelde index kunnen wissen.
+concurrency: eval
 permissions:
   id-token: write
   contents: write

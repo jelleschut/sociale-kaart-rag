@@ -5,8 +5,8 @@ on:
       source:
         description: "Bron"
         type: choice
-        options: [kb, social-map]
-        default: kb
+        options: [social-map]
+        default: social-map
 permissions:
   id-token: write
   contents: read

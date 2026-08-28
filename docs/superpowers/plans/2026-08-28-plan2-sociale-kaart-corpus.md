@@ -935,8 +935,8 @@ met `private static string? DomainToCategory(string d) => d is "gezondheid" or "
 
 ### Task 9: kb-POC-corpus verwijderen (besluit 27-08)
 
-- [ ] **Step 1:** Verwijder `ingest-kb`, `KbChunksSource` + tests, `kb-chunks.jsonl`, `SearchIndexes.Kb`-registratie in Api/Ingest (`index-create` maakt alleen `social-map`), `platform_kennis`/`kb` uit `IntentClassifier` (prompt én schema), de kb-optie in `ingest.yml`; de orchestrator-tests gebruiken voortaan `social-map`/`find_help`. Verwijder de `kb`-index live: `az rest --method delete --url "https://srch-skr-9asax.search.windows.net/indexes/kb?api-version=2024-07-01"` met een Search-token (zie plan 1).
-- [ ] **Step 2:** Spec §2 corpus-rij: alleen (a); ADR-0002 "Gevolgen" bijwerken; README-status. `dotnet test` groen; commit via PR — `refactor: kb-POC-corpus verwijderd (spec-besluit 27-08)`.
+- [x] **Step 1:** Verwijder `ingest-kb`, `KbChunksSource` + tests, `kb-chunks.jsonl`, `SearchIndexes.Kb`-registratie in Api/Ingest (`index-create` maakt alleen `social-map`), `platform_kennis`/`kb` uit `IntentClassifier` (prompt én schema), de kb-optie in `ingest.yml`; de orchestrator-tests gebruiken voortaan `social-map`/`find_help`. De live `kb`-index wordt apart door de controller verwijderd (niet door deze executor — geen `az`/netwerk).
+- [x] **Step 2:** Spec §2 corpus-rij: alleen (a); ADR-0002 "Gevolgen" bijwerken; README-status. `dotnet test` groen; commit via PR — `refactor: kb-POC-corpus verwijderd (spec-besluit 27-08, plan 2 Task 9)`.
 
 ---
 

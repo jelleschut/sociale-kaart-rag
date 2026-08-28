@@ -23,7 +23,7 @@ public sealed class AskOrchestrator(
 {
     private readonly Dictionary<string, ISearchTool> _tools = tools.ToDictionary(t => t.Corpus);
 
-    // De zes sociale-kaart-domeinen (spec §4.2); platform_kennis/out_of_scope hebben geen category-filter.
+    // De zes sociale-kaart-domeinen (spec §4.2); out_of_scope heeft geen category-filter.
     private static readonly HashSet<string> SocialMapCategories =
         ["gezondheid", "werk_inkomen", "wonen", "vervoer", "welzijn", "mantelzorg"];
 

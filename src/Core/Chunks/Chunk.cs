@@ -7,7 +7,7 @@ namespace SocialeKaartRag.Core.Chunks;
 public sealed record Chunk
 {
     public required string Id { get; init; }
-    public required string Corpus { get; init; }        // "kb" | "social-map"
+    public required string Corpus { get; init; }        // "social-map"
     public required string Source { get; init; }        // bv. "soevereinlab-knowledge"
     public required string SourceId { get; init; }      // bv. "topic-age#00"
     public string? SourceUrl { get; init; }

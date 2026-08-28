@@ -12,10 +12,10 @@ public sealed record SearchHit(
 
 public sealed record SearchQuery(string Text, string? Category = null, GeoPoint? Near = null, double RadiusKm = 5, int TopK = 6);
 
-/// <summary>Enige tool-soort die de orchestrator kent (spec §4.2/§4.3 allow-list). Twee registraties: kb en social-map.</summary>
+/// <summary>Enige tool-soort die de orchestrator kent (spec §4.2/§4.3 allow-list).</summary>
 public interface ISearchTool
 {
-    string Name { get; }      // "search_kb" | "search_social_map"
-    string Corpus { get; }    // "kb" | "social-map"
+    string Name { get; }      // "search_social_map"
+    string Corpus { get; }    // "social-map"
     Task<IReadOnlyList<SearchHit>> SearchAsync(SearchQuery query, CancellationToken ct = default);
 }

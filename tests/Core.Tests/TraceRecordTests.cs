@@ -12,7 +12,7 @@ public class TraceRecordTests
         {
             Intent = "find_help", Domain = "wonen", PiiRedacted = true, PiiTypes = ["bsn"],
             Outcome = TraceOutcome.RefusedMedical, RetrievedChunkIds = ["c1"], RetrievedScores = [0.9],
-            ToolCalls = [new ToolCall("search_kb", "abc", 1)],
+            ToolCalls = [new ToolCall("search_social_map", "abc", 1)],
         };
         var json = JsonSerializer.Serialize(t, TraceRecord.JsonOptions);
 

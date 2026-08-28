@@ -52,4 +52,4 @@ via PDOK naar een punt vertaald en gefilterd op afstand.
 - Persoonsgegevens: bronnen bevatten organisaties; pagina-tekst wordt gefilterd op e-mailadressen
   en telefoonnummers van personen (alleen organisatie-contact blijft) — zie Task 4.
   OSM-`description`-tags gaan door hetzelfde PII-filter als paginatekst.
-- Het kb-POC-corpus vervalt zodra dit corpus live is (Task 9).
+- Het kb-POC-corpus is verwijderd (28-08-2026).

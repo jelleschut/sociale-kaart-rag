@@ -18,6 +18,7 @@ public static class AskEndpoint
                 return Results.BadRequest(new { error = $"question is verplicht, max {MaxQuestionLength} tekens" });
 
             var correlationId = Guid.NewGuid().ToString("n");
+            http.Items["CorrelationId"] = correlationId;
             http.Response.Headers["X-Correlation-Id"] = correlationId;
             var result = await orchestrator.AskAsync(req.Question, correlationId, ct);
             return Results.Ok(new
@@ -42,6 +43,7 @@ public static class AskEndpoint
             if (string.IsNullOrWhiteSpace(question) || question.Length > MaxQuestionLength)
                 return Results.Content("<p class=\"message\">Stel een vraag van maximaal 1000 tekens.</p>", "text/html; charset=utf-8", statusCode: 400);
             var correlationId = Guid.NewGuid().ToString("n");
+            http.Items["CorrelationId"] = correlationId;
             http.Response.Headers["X-Correlation-Id"] = correlationId;
             var result = await orchestrator.AskAsync(question, correlationId, ct);
             return Results.Content(AskHtml.Render(result), "text/html; charset=utf-8");

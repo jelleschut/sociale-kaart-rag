@@ -2,6 +2,7 @@ using System.Threading.RateLimiting;
 using Azure.Search.Documents.Indexes;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using OpenAI.Chat;
 using OpenAI.Embeddings;
@@ -23,6 +24,11 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("ask", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "anon",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+    o.OnRejected = (ctx, ct) =>
+    {
+        ctx.HttpContext.Response.Headers.RetryAfter = "60";
+        return ValueTask.CompletedTask;
+    };
 });
 
 builder.Services.AddSingleton<IIntentClassifier>(sp => new OpenAiIntentClassifier(sp.GetRequiredService<ChatClient>()));
@@ -57,18 +63,30 @@ builder.Services.AddSingleton<IAskOrchestrator, AskOrchestrator>();
 
 var app = builder.Build();
 
-// Eerst in de pipeline: vangt ook fouten uit latere middleware af en geeft nooit een stack trace terug
+// Container Apps-ingress zit ervoor; alleen de laatste hop wordt vertrouwd (ForwardLimit 1).
+var fwd = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    ForwardLimit = 1,
+};
+fwd.KnownIPNetworks.Clear();
+fwd.KnownProxies.Clear();
+app.UseForwardedHeaders(fwd);
+
+// Vangt ook fouten uit latere middleware af en geeft nooit een stack trace terug
 // (ook niet in Development — expliciete registratie voorkomt dat de developer exception page dit overneemt).
 app.UseExceptionHandler(e => e.Run(async ctx =>
 {
+    var correlationId = ctx.Items["CorrelationId"] as string ?? ctx.TraceIdentifier;
     ctx.Response.StatusCode = 500;
     ctx.Response.ContentType = "application/problem+json";
+    ctx.Response.Headers["X-Correlation-Id"] = correlationId;
     await ctx.Response.WriteAsJsonAsync(new
     {
         type = "about:blank",
         title = "Interne fout",
         status = 500,
-        correlationId = ctx.Response.Headers["X-Correlation-Id"].ToString(),
+        correlationId,
     });
 }));
 

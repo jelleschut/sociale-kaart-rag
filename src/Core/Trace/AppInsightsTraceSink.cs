@@ -12,6 +12,7 @@ public sealed class AppInsightsTraceSink(TelemetryClient telemetry) : ITraceSink
         evt.Properties["correlationId"] = r.CorrelationId;
         evt.Properties["policyVersion"] = r.PolicyVersion;
         evt.Properties["model"] = r.Model ?? "";
+        evt.Properties["modelVersion"] = r.ModelVersion ?? "";
         evt.Properties["intent"] = r.Intent ?? "";
         evt.Properties["domain"] = r.Domain ?? "";
         evt.Properties["outcome"] = r.Outcome.ToString();

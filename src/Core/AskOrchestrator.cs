@@ -8,7 +8,7 @@ using SocialeKaartRag.Core.Trace;
 
 namespace SocialeKaartRag.Core;
 
-public sealed record SourceRef(string Id, string SourceId, string? Url, string? Heading, string? LastVerified);
+public sealed record SourceRef(string Id, string SourceId, string? Url, string? Heading, string? LastVerified, string? Attribution = null);
 
 public sealed record AskResult(
     string CorrelationId, TraceOutcome Outcome, string? Message, Answer? Answer, IReadOnlyList<SourceRef> Sources, string PolicyVersion);
@@ -18,9 +18,16 @@ public sealed class AskOrchestrator(
     IIntentClassifier classifier,
     IEnumerable<ISearchTool> tools,
     IAnswerGenerator generator,
-    ITraceSink trace)
+    ITraceSink trace,
+    IGeocoder geocoder)
 {
     private readonly Dictionary<string, ISearchTool> _tools = tools.ToDictionary(t => t.Corpus);
+
+    // De zes sociale-kaart-domeinen (spec §4.2); platform_kennis/out_of_scope hebben geen category-filter.
+    private static readonly HashSet<string> SocialMapCategories =
+        ["gezondheid", "werk_inkomen", "wonen", "vervoer", "welzijn", "mantelzorg"];
+
+    private static string? DomainToCategory(string domain) => SocialMapCategories.Contains(domain) ? domain : null;
 
     public async Task<AskResult> AskAsync(string question, string correlationId, CancellationToken ct = default)
     {
@@ -41,15 +48,32 @@ public sealed class AskOrchestrator(
             // 3. Tool allow-list: alleen de geregistreerde tool voor het gekozen corpus; de orchestrator roept aan, niet het model.
             if (!_tools.TryGetValue(intent.Corpus, out var tool))
                 return await Finish(record, TraceOutcome.RefusedScope, "no_tool_for_corpus", RefusalTexts.OutOfScope, null, [], sw);
-            var query = new SearchQuery(pii.Text);
+
+            GeoPoint? near = null;
+            if (tool.Corpus == SearchIndexes.SocialMap && PostcodeDetector.Find(pii.Text) is { } pc)
+            {
+                // Een falende geocoder degradeert naar geen geo-filter i.p.v. de hele aanvraag te laten mislukken.
+                try { near = await geocoder.PostcodeAsync(pc, ct); }
+                catch (Exception) { near = null; }
+            }
+            var category = tool.Corpus == SearchIndexes.SocialMap ? DomainToCategory(intent.Domain) : null;
+            var query = new SearchQuery(pii.Text, category, near);
+            var calls = new List<ToolCall>();
             var hits = await tool.SearchAsync(query, ct);
+            calls.Add(new ToolCall(tool.Name, Sha256($"{query.Text}|{query.Category}|{query.Near?.Lat}|{query.Near?.Lon}|{query.TopK}"), hits.Count));
+            if (hits.Count == 0 && category is not null)
+            {
+                query = query with { Category = null };
+                hits = await tool.SearchAsync(query, ct);
+                calls.Add(new ToolCall(tool.Name, Sha256($"{query.Text}|{query.Category}|{query.Near?.Lat}|{query.Near?.Lon}|{query.TopK}"), hits.Count));
+            }
             record = record with
             {
-                ToolCalls = [new ToolCall(tool.Name, Sha256(query.Text + "|" + query.TopK), hits.Count)],
+                ToolCalls = calls.ToArray(),
                 RetrievedChunkIds = hits.Select(h => h.Id).ToArray(),
                 RetrievedScores = hits.Select(h => h.Score).ToArray(),
             };
-            var sources = hits.Select(h => new SourceRef(h.Id, h.SourceId, h.SourceUrl, h.HeadingPath, h.LastVerified)).ToList();
+            var sources = hits.Select(h => new SourceRef(h.Id, h.SourceId, h.SourceUrl, h.HeadingPath, h.LastVerified, h.Attribution)).ToList();
 
             // 5a. Escalatie op retrieval-score
             if (hits.Count == 0 || hits.Max(h => h.Score) < PolicyVersion.EscalationScoreThreshold)

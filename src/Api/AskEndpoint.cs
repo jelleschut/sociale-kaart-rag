@@ -27,7 +27,7 @@ public static class AskEndpoint
                 answer = result.Answer?.Items.Select(i => new { text = i.Text, kind = i.Kind, citations = i.Citations }),
                 confidence = result.Answer?.Confidence,
                 followUp = result.Answer?.FollowUp,
-                sources = result.Sources.Select(s => new { id = s.Id, sourceId = s.SourceId, url = s.Url, heading = s.Heading, lastVerified = s.LastVerified }),
+                sources = result.Sources.Select(s => new { id = s.Id, sourceId = s.SourceId, url = s.Url, heading = s.Heading, lastVerified = s.LastVerified, attribution = s.Attribution }),
                 policyVersion = result.PolicyVersion,
             });
         });

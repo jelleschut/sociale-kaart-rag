@@ -18,6 +18,13 @@ builder.Services.AddSingleton<IAnswerGenerator>(sp => new OpenAiAnswerGenerator(
 foreach (var corpus in new[] { SearchIndexes.Kb, SearchIndexes.SocialMap })
     builder.Services.AddSingleton<ISearchTool>(sp => new AzureSearchTool(sp.GetRequiredService<SearchIndexClient>(), sp.GetRequiredService<EmbeddingClient>(), corpus));
 
+builder.Services.AddHttpClient("pdok", c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(5);
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("sociale-kaart-rag/1.0 (+https://github.com/jelleschut/sociale-kaart-rag)");
+});
+builder.Services.AddSingleton<IGeocoder>(sp => new PdokGeocoder(sp.GetRequiredService<IHttpClientFactory>().CreateClient("pdok")));
+
 builder.Services.AddSingleton<BlobTraceSink>();
 builder.Services.AddSingleton<ITraceReader>(sp => sp.GetRequiredService<BlobTraceSink>());
 var aiConn = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];

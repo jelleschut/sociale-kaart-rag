@@ -14,6 +14,7 @@ public sealed record TraceRecord
     public required DateTimeOffset Timestamp { get; init; }
     public string PolicyVersion { get; init; } = Policy.PolicyVersion.Current;
     public string? Model { get; init; }
+    public string? ModelVersion { get; init; }
     public string? PromptHash { get; init; }
     public bool PiiRedacted { get; init; }
     public string[] PiiTypes { get; init; } = [];

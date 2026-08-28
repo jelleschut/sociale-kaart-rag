@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using SocialeKaartRag.Core.Generation;
 using SocialeKaartRag.Core.Policy;
 using SocialeKaartRag.Core.Retrieval;
@@ -82,9 +83,10 @@ public sealed class AskOrchestrator(
 
             // 4. Generatie (bronnen als untrusted content in de user-turn)
             var gen = await generator.GenerateAsync(pii.Text, hits, ct);
+            var (modelName, modelVersion) = SplitModel(gen.Usage.Model);
             record = record with
             {
-                Model = gen.Usage.Model, PromptHash = gen.PromptHash,
+                Model = modelName, ModelVersion = modelVersion, PromptHash = gen.PromptHash,
                 TokensIn = gen.Usage.TokensIn, TokensOut = gen.Usage.TokensOut, TokensCached = gen.Usage.TokensCached,
                 EstimatedCostEur = CostEstimator.EstimateEur(gen.Usage.Model, gen.Usage.TokensIn, gen.Usage.TokensOut, gen.Usage.TokensCached),
             };
@@ -119,4 +121,14 @@ public sealed class AskOrchestrator(
     }
 
     private static string Sha256(string s) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(s)));
+
+    /// <summary>Splitst een modelstring als "gpt-4.1-mini-2025-04-14" in naam en release-datum; zonder
+    /// zo'n datumsuffix blijft de naam ongewijzigd en is de versie null.</summary>
+    private static readonly Regex ModelVersionSuffix = new(@"^(?<name>.+)-(?<version>\d{4}-\d{2}-\d{2})$", RegexOptions.Compiled);
+
+    public static (string Name, string? Version) SplitModel(string model)
+    {
+        var m = ModelVersionSuffix.Match(model);
+        return m.Success ? (m.Groups["name"].Value, m.Groups["version"].Value) : (model, null);
+    }
 }

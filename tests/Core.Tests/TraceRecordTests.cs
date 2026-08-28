@@ -44,6 +44,14 @@ public class TraceRecordTests
         => Assert.Equal(expectedEur, CostEstimator.EstimateEur(model, tokensIn, tokensOut, cached), 6);
 
     [Fact]
+    public void SplitModel_splits_off_a_date_suffixed_version()
+        => Assert.Equal(("gpt-4.1-mini", "2025-04-14"), AskOrchestrator.SplitModel("gpt-4.1-mini-2025-04-14"));
+
+    [Fact]
+    public void SplitModel_without_a_date_suffix_has_no_version()
+        => Assert.Equal(("gpt-4.1-mini", (string?)null), AskOrchestrator.SplitModel("gpt-4.1-mini"));
+
+    [Fact]
     public async Task Composite_sink_keeps_going_when_one_sink_throws()
     {
         var ok = new MemorySink();

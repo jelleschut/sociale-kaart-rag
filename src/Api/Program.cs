@@ -41,9 +41,13 @@ builder.Services.AddSingleton<ITraceSink>(sp =>
     }
     return new CompositeTraceSink(sinks, sp.GetRequiredService<ILogger<CompositeTraceSink>>());
 });
-builder.Services.AddSingleton<AskOrchestrator>();
+builder.Services.AddSingleton<IAskOrchestrator, AskOrchestrator>();
 
 var app = builder.Build();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.MapAsk();
 app.MapGet("/healthz", () => Results.Ok(new { status = "ok", policyVersion = PolicyVersion.Current }));
 app.Run();
+
+public partial class Program { }

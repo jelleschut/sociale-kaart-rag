@@ -1,0 +1,35 @@
+<!--
+  htmx.min.js gevendord (geen CDN, CSP default-src 'self'):
+  versie 2.0.10 · sha256 71ea67185bfa8c98c39d31717c6fce5d852370fcdfd129db4543774d3145c0de
+  bron: https://unpkg.com/htmx.org@2/dist/htmx.min.js
+-->
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sociale kaart — gids (demo)</title>
+  <link rel="stylesheet" href="/site.css">
+  <script src="/htmx.min.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Sociale kaart — gids <small>demo · Den Haag &amp; Zoetermeer</small></h1>
+    <p class="intro">Stel een vraag over hulp, regelingen of voorzieningen. De gids antwoordt alleen op basis van
+      bronnen en geeft geen medisch advies. Vermeld geen BSN, adres of telefoonnummer — die worden sowieso weggehaald.</p>
+    <form hx-post="/ask/fragment" hx-target="#result" hx-indicator="#busy">
+      <label for="question">Uw vraag</label>
+      <textarea id="question" name="question" maxlength="1000" rows="3" required
+        placeholder="bv. waar is een wijkcentrum in de buurt van 2511CV?"></textarea>
+      <button type="submit">Vraag</button>
+      <span id="busy" class="htmx-indicator">even geduld…</span>
+    </form>
+    <section id="result" aria-live="polite"></section>
+    <footer>
+      <p>Bronnen: gemeenten via Samenwerkende Catalogi (CC0) · © OpenStreetMap-bijdragers (ODbL) · PDOK (CC0).
+        Elk antwoord linkt naar zijn bron. Geen accounts, geen cookies. Broncode:
+        <a href="https://github.com/jelleschut/sociale-kaart-rag">github.com/jelleschut/sociale-kaart-rag</a>.</p>
+    </footer>
+  </main>
+</body>
+</html>

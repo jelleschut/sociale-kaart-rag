@@ -19,7 +19,7 @@ public sealed class AskOrchestrator(
     IEnumerable<ISearchTool> tools,
     IAnswerGenerator generator,
     ITraceSink trace,
-    IGeocoder geocoder)
+    IGeocoder geocoder) : IAskOrchestrator
 {
     private readonly Dictionary<string, ISearchTool> _tools = tools.ToDictionary(t => t.Corpus);
 

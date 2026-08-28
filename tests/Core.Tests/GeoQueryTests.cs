@@ -6,7 +6,9 @@ public class GeoQueryTests
 {
     [Fact]
     public void Filter_includes_corpus_category_and_distance_invariant_culture()
-        => Assert.Equal("corpus eq 'social-map' and category eq 'welzijn' and geo.distance(geo, geography'POINT(4.3156 52.0813)') le 5",
+        // SC-producten dragen één gemeente-centroïde, geen locatie; ze horen altijd binnen de eigen
+        // gemeente beschikbaar te zijn, dus de geo-filter geldt alleen voor OSM-records (bron:sc ontsnapt eraan).
+        => Assert.Equal("corpus eq 'social-map' and category eq 'welzijn' and (geo.distance(geo, geography'POINT(4.3156 52.0813)') le 5 or tags/any(t: t eq 'bron:sc'))",
             AzureSearchTool.BuildFilter("social-map", "welzijn", new GeoPoint(52.0813, 4.3156), 5));
 
     [Fact]

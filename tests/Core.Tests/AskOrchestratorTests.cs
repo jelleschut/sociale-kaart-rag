@@ -50,6 +50,11 @@ public class AskOrchestratorTests
         public Task<GeoPoint?> PostcodeAsync(string postcode, CancellationToken ct = default) { Calls++; return Task.FromResult(point); }
         public Task<GeoPoint?> MunicipalityCentroidAsync(string municipality, CancellationToken ct = default) { Calls++; return Task.FromResult(point); }
     }
+    private sealed class ThrowingGeocoder : IGeocoder
+    {
+        public Task<GeoPoint?> PostcodeAsync(string postcode, CancellationToken ct = default) => throw new HttpRequestException("pdok onbereikbaar");
+        public Task<GeoPoint?> MunicipalityCentroidAsync(string municipality, CancellationToken ct = default) => throw new HttpRequestException("pdok onbereikbaar");
+    }
 
     private static SearchHit Hit(string id, double score, string[]? tags = null) => new(id, "kb", "s#" + id, "https://u/" + id, "topic", "H", null, "tekst " + id, score, tags);
     private static Intent Kb => new("platform_kennis", "information", "kb");
@@ -179,6 +184,16 @@ public class AskOrchestratorTests
     }
 
     [Fact]
+    public async Task Geocoder_failure_degrades_to_no_geo_filter()
+    {
+        var search = new FakeSearch("social-map", Hit("c1", 0.9));
+        var o = new AskOrchestrator(new FakeClassifier(new Intent("welzijn", "find_help", "social-map")), [search], new FakeGenerator(new Answer([new("a", "fact", ["c1"])], "high", null)), new MemorySink(), new ThrowingGeocoder());
+        var r = await o.AskAsync("waar is een wijkcentrum in de buurt van 2511CV?", "corr");
+        Assert.Equal(TraceOutcome.Answered, r.Outcome);
+        Assert.Null(search.LastQuery!.Near);
+    }
+
+    [Fact]
     public async Task Kb_corpus_is_never_geocoded()
     {
         var geocoder = new FakeGeocoder(new GeoPoint(52.08, 4.31));
@@ -194,10 +209,13 @@ public class AskOrchestratorTests
     public async Task Empty_result_with_category_retries_without_category()
     {
         var search = new FakeSearchSequence("social-map", [], [Hit("c1", 0.9)]);
-        var o = new AskOrchestrator(new FakeClassifier(new Intent("wonen", "find_help", "social-map")), [search], new FakeGenerator(new Answer([new("a", "fact", ["c1"])], "high", null)), new MemorySink(), new FakeGeocoder(null));
+        var sink = new MemorySink();
+        var o = new AskOrchestrator(new FakeClassifier(new Intent("wonen", "find_help", "social-map")), [search], new FakeGenerator(new Answer([new("a", "fact", ["c1"])], "high", null)), sink, new FakeGeocoder(null));
         var r = await o.AskAsync("vraag", "corr");
         Assert.Equal(TraceOutcome.Answered, r.Outcome);
         Assert.Equal(["wonen", null], search.Categories);
+        Assert.Equal(2, sink.Last!.ToolCalls.Length);
+        Assert.Equal(0, sink.Last.ToolCalls[0].ResultCount);
     }
 
     [Fact]

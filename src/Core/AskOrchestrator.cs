@@ -51,18 +51,25 @@ public sealed class AskOrchestrator(
 
             GeoPoint? near = null;
             if (tool.Corpus == SearchIndexes.SocialMap && PostcodeDetector.Find(pii.Text) is { } pc)
-                near = await geocoder.PostcodeAsync(pc, ct);
+            {
+                // Een falende geocoder degradeert naar geen geo-filter i.p.v. de hele aanvraag te laten mislukken.
+                try { near = await geocoder.PostcodeAsync(pc, ct); }
+                catch (Exception) { near = null; }
+            }
             var category = tool.Corpus == SearchIndexes.SocialMap ? DomainToCategory(intent.Domain) : null;
             var query = new SearchQuery(pii.Text, category, near);
+            var calls = new List<ToolCall>();
             var hits = await tool.SearchAsync(query, ct);
+            calls.Add(new ToolCall(tool.Name, Sha256($"{query.Text}|{query.Category}|{query.Near?.Lat}|{query.Near?.Lon}|{query.TopK}"), hits.Count));
             if (hits.Count == 0 && category is not null)
             {
                 query = query with { Category = null };
                 hits = await tool.SearchAsync(query, ct);
+                calls.Add(new ToolCall(tool.Name, Sha256($"{query.Text}|{query.Category}|{query.Near?.Lat}|{query.Near?.Lon}|{query.TopK}"), hits.Count));
             }
             record = record with
             {
-                ToolCalls = [new ToolCall(tool.Name, Sha256($"{query.Text}|{query.Category}|{query.Near?.Lat}|{query.Near?.Lon}|{query.TopK}"), hits.Count)],
+                ToolCalls = calls.ToArray(),
                 RetrievedChunkIds = hits.Select(h => h.Id).ToArray(),
                 RetrievedScores = hits.Select(h => h.Score).ToArray(),
             };

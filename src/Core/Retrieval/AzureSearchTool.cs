@@ -46,7 +46,12 @@ public sealed class AzureSearchTool(SearchIndexClient indexClient, EmbeddingClie
         if (category is not null)
             filter += $" and category eq '{category.Replace("'", "''")}'";
         if (near is not null)
-            filter += $" and geo.distance(geo, geography'POINT({near.Lon.ToString(CultureInfo.InvariantCulture)} {near.Lat.ToString(CultureInfo.InvariantCulture)})') le {radiusKm.ToString(CultureInfo.InvariantCulture)}";
+        {
+            // De geo-filter geldt alleen voor OSM-records: SC-producten dragen één gemeente-centroïde, geen
+            // locatie, en horen altijd binnen de eigen gemeente beschikbaar te zijn (dus ontsnappen ze eraan).
+            var point = $"geography'POINT({near.Lon.ToString(CultureInfo.InvariantCulture)} {near.Lat.ToString(CultureInfo.InvariantCulture)})'";
+            filter += $" and (geo.distance(geo, {point}) le {radiusKm.ToString(CultureInfo.InvariantCulture)} or tags/any(t: t eq 'bron:sc'))";
+        }
         return filter;
     }
 }

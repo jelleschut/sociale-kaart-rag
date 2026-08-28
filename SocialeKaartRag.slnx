@@ -6,12 +6,18 @@
   <Folder Name="/src/Core/">
     <Project Path="src/Core/SocialeKaartRag.Core.csproj" />
   </Folder>
+  <Folder Name="/src/Eval/">
+    <Project Path="src/Eval/SocialeKaartRag.Eval.csproj" />
+  </Folder>
   <Folder Name="/src/Ingest/">
     <Project Path="src/Ingest/SocialeKaartRag.Ingest.csproj" />
   </Folder>
   <Folder Name="/tests/" />
   <Folder Name="/tests/Core.Tests/">
     <Project Path="tests/Core.Tests/SocialeKaartRag.Core.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Eval.Tests/">
+    <Project Path="tests/Eval.Tests/SocialeKaartRag.Eval.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/Ingest.Tests/">
     <Project Path="tests/Ingest.Tests/SocialeKaartRag.Ingest.Tests.csproj" />

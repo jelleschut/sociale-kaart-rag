@@ -200,7 +200,7 @@ README (doel, architectuurplaat op C2-niveau, wat dit wel/niet bewijst, kosten),
 
 1. Repo + git-identiteit + Azure-profiel + Terraform-bootstrap — gate: `terraform plan` leeg-naar-plan werkt met OIDC.
 2. Infra apply — gate: managed identity kan Search en OpenAI aanroepen; budget zichtbaar.
-3. Ingest `kb-chunks.jsonl` — gate: hybrid query geeft chunks met provenance.
+3. Ingest `kb-chunks.jsonl` — gate: hybrid query geeft chunks met provenance. *(historisch: POC-corpus, verwijderd 28-08-2026 in plan 2 Task 9)*
 4. API + Policy + Generation + Trace — gate: `/ask` geeft gecieerd antwoord, weigert triage, trace in Blob.
 5. Sociale-kaart-ingest met PDOK — gate: geo-filter werkt, geen huisnummers in index.
 6. Eval-suite + CI-scans — gate: rapport gecommit, drempels afgedwongen.

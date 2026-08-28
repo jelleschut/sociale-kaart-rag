@@ -34,3 +34,11 @@ Uit de afsluitende review over de hele plan-1-implementatie. Geen blockers; op t
 | 18 | `contents: write`/`pull-requests: write` gelden voor de hele eval-job; opsplitsen in twee jobs met artifact-overdracht als least-privilege gewenst is | permissie-scope | `eval.yml` | later |
 | 19 | Judge = zelfde model als generator (zelfbeoordeling); overweeg een tweede, onafhankelijk judge-model als het budget dat toelaat | eval-onafhankelijkheid | `src/Eval/Judge.cs`, ADR-0005 | later |
 | 20 | Escalatie-cases v04–v06 accepteren ook `refused_scope`; als de classifier structureel `out_of_scope` kiest voor andere gemeenten is een eigen categorie "buiten werkgebied" zuiverder | intent-taxonomie | `IntentClassifier`, `eval/cases.yaml` | 4 |
+
+## Na plan 4 (gate 7, 28-08-2026)
+
+| # | Onderwerp | Waarom | Waar | Plan |
+|---|---|---|---|---|
+| 21 | `eval.yml` kon geen PR aanmaken ("GitHub Actions is not permitted to create or approve pull requests"): repo-instelling *Allow GitHub Actions to create and approve pull requests* aanzetten; daarna een dispatch-run als bewijs | rapport-PR-flow bewezen krijgen | repo-instellingen, README "Evaluatie" | direct |
+| 22 | Eval-run 33167786538: groundedness 7/8 (88 % < 90 %) door g04 → `escalated (no_cited_answer)`; plan 3 gate 6 haalde 4× 100 % → retrieval-flakiness onderzoeken (categoriefilter-retry, drempel op zwakke hits) of g04-vraag herformuleren | eval-stabiliteit | `eval/cases.yaml`, `AskOrchestrator` | later |
+| 23 | Operator-datarollen wisselden per apply-context (lokaal User vs CI-identity) en werden door een CI-apply vernietigd; nu `var.operator_object_id` (PR #39). Overweeg `terraform plan`-check in CI die een destroy van rolaanwijzingen blokkeert | guarded automation | `infra/identity.tf`, `ci.yml` | later |

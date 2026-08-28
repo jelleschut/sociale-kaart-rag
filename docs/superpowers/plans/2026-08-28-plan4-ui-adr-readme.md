@@ -398,10 +398,10 @@ Trace-test: `TraceRecord` krijgt `ModelVersion`; `AskOrchestrator` vult `Model =
 
 ### Task 4: Deploy, gate 7 en kostencheck
 
-- [ ] **Step 1: `deploy.yml` smoke uitbreiden**: na `/healthz` ook `curl -fsS "$API_URL/" | grep -q "Sociale kaart"`.
-- [ ] **Step 2: Deploy** — merge triggert `deploy`; Jelle keurt goed in environment `azure`. Daarna live: `GET /` toont de pagina; via de UI: "waar is een wijkcentrum in de buurt van 2511CV?" → gecieerd antwoord met badges/attributie/correlation-id; "ik heb koorts, wat heb ik?" → weigering. Koude start ≤ 20 s.
-- [ ] **Step 3: Kosten** — `az rest` CostManagement query month-to-date voor `rg-skr-9asax` → bedrag in README "Kosten".
-- [ ] **Step 4: Plan afvinken, README-status, follow-ups; commit via PR** — `docs: live-URL, kosten en status na plan 4`
+- [x] **Step 1: `deploy.yml` smoke uitbreiden**: na `/healthz` ook `curl -fsS "$API_URL/" | grep -q "Sociale kaart"`.
+- [x] **Step 2: Deploy** (run 33167191378 groen; live-check 28-08: `/` 200 in 0,14 s, wijkcentrum-vraag → 3 OSM-feiten met citaties/attributie, koorts → `refused_medical`) — merge triggert `deploy`; Jelle keurt goed in environment `azure`. Daarna live: `GET /` toont de pagina; via de UI: "waar is een wijkcentrum in de buurt van 2511CV?" → gecieerd antwoord met badges/attributie/correlation-id; "ik heb koorts, wat heb ik?" → weigering. Koude start ≤ 20 s.
+- [x] **Step 3: Kosten** (€ 0,0067 MTD 28-08) — `az rest` CostManagement query month-to-date voor `rg-skr-9asax` → bedrag in README "Kosten".
+- [x] **Step 4: Plan afvinken, README-status, follow-ups; commit via PR** — `docs: live-URL, kosten en status na plan 4`
 
 ---
 

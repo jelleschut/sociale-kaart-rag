@@ -52,4 +52,9 @@ via PDOK naar een punt vertaald en gefilterd op afstand.
 - Persoonsgegevens: bronnen bevatten organisaties; pagina-tekst wordt gefilterd op e-mailadressen
   en telefoonnummers van personen (alleen organisatie-contact blijft) — zie Task 4.
   OSM-`description`-tags gaan door hetzelfde PII-filter als paginatekst.
+- **Persoonsgegevens in OSM-namen (besluit 28-08-2026, risico-acceptatie):** namen van eenmanspraktijken
+  ("Huisartsenpraktijk J. de Vries") zijn bedrijfsnamen van openbare praktijken en komen uit een publieke
+  bron met bronlink; ze worden niet gegeneraliseerd of uitgesloten. Mobiele telefoonnummers in OSM-tags
+  worden wél verwijderd (zelfde filter als paginatekst); vaste organisatienummers blijven. Herzien als de
+  demo een bredere doelgroep krijgt dan een CV-showcase.
 - Het kb-POC-corpus is verwijderd (28-08-2026).

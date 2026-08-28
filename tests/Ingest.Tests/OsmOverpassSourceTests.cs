@@ -74,4 +74,17 @@ public class OsmOverpassSourceTests
         Assert.DoesNotContain("06-12345678", r.BodyText);
         Assert.DoesNotContain("piet.jansen@x.nl", r.BodyText);
     }
+
+    [Theory]
+    [InlineData("06-12345678", false)]
+    [InlineData("+31 6 12345678", false)]
+    [InlineData("070-1234567", true)]
+    [InlineData("+31 79 316 4646", true)]
+    public void Mobile_phone_numbers_are_redacted_landlines_kept(string phone, bool kept)
+    {
+        var json = $$$"""{"elements":[{"type":"node","id":9,"lat":52.1,"lon":4.3,"tags":{"name":"Praktijk X","amenity":"doctors","phone":"{{{phone}}}"}}]}""";
+        var r = Assert.Single(OsmOverpassSource.Parse(json, "Den Haag"));
+        if (kept) Assert.Equal(phone, r.Phone);
+        else Assert.Null(r.Phone);
+    }
 }

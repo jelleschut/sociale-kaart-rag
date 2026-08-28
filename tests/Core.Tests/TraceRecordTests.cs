@@ -17,7 +17,7 @@ public class TraceRecordTests
         var json = JsonSerializer.Serialize(t, TraceRecord.JsonOptions);
 
         Assert.Contains("\"correlationId\":\"corr-1\"", json);
-        Assert.Contains("\"policyVersion\":\"1.0.0\"", json);
+        Assert.Contains("\"policyVersion\":\"1.0.1\"", json);
         Assert.Contains("\"outcome\":\"refused_medical\"", json);
         Assert.Contains("\"piiTypes\":[\"bsn\"]", json);
         Assert.DoesNotContain("question", json, StringComparison.OrdinalIgnoreCase);

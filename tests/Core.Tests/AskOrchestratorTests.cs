@@ -218,6 +218,30 @@ public class AskOrchestratorTests
     }
 
     [Fact]
+    public async Task Weak_hits_with_category_retry_without_category()
+    {
+        var search = new FakeSearchSequence("social-map", [Hit("c1", 0.005)], [Hit("c2", 0.9)]);
+        var sink = new MemorySink();
+        var o = new AskOrchestrator(new FakeClassifier(new Intent("welzijn", "find_help", "social-map")), [search], new FakeGenerator(new Answer([new("a", "fact", ["c2"])], "high", null)), sink, new FakeGeocoder(null));
+        var r = await o.AskAsync("vraag", "corr");
+        Assert.Equal(TraceOutcome.Answered, r.Outcome);
+        Assert.Equal(["welzijn", null], search.Categories);
+        Assert.Equal(2, sink.Last!.ToolCalls.Length);
+    }
+
+    [Fact]
+    public async Task Strong_hits_with_category_do_not_retry()
+    {
+        var search = new FakeSearchSequence("social-map", [Hit("c1", 0.9)]);
+        var sink = new MemorySink();
+        var o = new AskOrchestrator(new FakeClassifier(new Intent("welzijn", "find_help", "social-map")), [search], new FakeGenerator(new Answer([new("a", "fact", ["c1"])], "high", null)), sink, new FakeGeocoder(null));
+        var r = await o.AskAsync("vraag", "corr");
+        Assert.Equal(TraceOutcome.Answered, r.Outcome);
+        Assert.Equal("welzijn", Assert.Single(search.Categories));
+        Assert.Single(sink.Last!.ToolCalls);
+    }
+
+    [Fact]
     public async Task Sources_carry_attribution_from_tags()
     {
         var search = new FakeSearch("social-map", Hit("c1", 0.9, ["attribution:© OpenStreetMap-bijdragers (ODbL 1.0)"]));

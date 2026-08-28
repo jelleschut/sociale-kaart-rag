@@ -63,16 +63,21 @@ public sealed partial class PageFetcher(HttpClient http)
 
         var text = Whitespace().Replace(string.Join(" ", parts.Where(p => p.Length > 0)), " ").Trim();
         text = RemovePersonalContacts(text);
-        return new FetchedPage(text.Length > MaxChars ? text[..MaxChars] : text, keywords);
+        return new FetchedPage(Truncate(text), keywords);
     }
 
+    // Woorden/widgets die geen inhoudelijke tekst zijn (gerelateerde content, zoekbalken, teasers, menu's) horen niet in de pagetekst.
+    private static readonly string[] SkippedBundleMarkers = ["related", "collection", "search", "teaser", "slider", "menu"];
+
     // Verzamelt in documentvolgorde: fieldTitle (kopjes) en elke "processed"-HTML onder fieldParagraphs, ongeacht de nesting.
+    // Widget-subtrees (related content, zoekbalken, teasers, sliders, menu's — herkend aan __typename/entityBundle) worden overgeslagen.
     private static void CollectProcessed(JsonElement el, List<string> parts)
     {
         switch (el.ValueKind)
         {
             case JsonValueKind.Array: foreach (var x in el.EnumerateArray()) CollectProcessed(x, parts); break;
             case JsonValueKind.Object:
+                if (IsSkippedWidget(el)) return;
                 foreach (var p in el.EnumerateObject())
                 {
                     if (p.Name == "fieldTitle" && p.Value.ValueKind == JsonValueKind.String) parts.Add(p.Value.GetString()!);
@@ -81,6 +86,27 @@ public sealed partial class PageFetcher(HttpClient http)
                 }
                 break;
         }
+    }
+
+    private static bool IsSkippedWidget(JsonElement obj)
+    {
+        foreach (var name in new[] { "__typename", "entityBundle" })
+        {
+            if (obj.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String)
+            {
+                var value = v.GetString()!;
+                if (SkippedBundleMarkers.Any(m => value.Contains(m, StringComparison.OrdinalIgnoreCase))) return true;
+            }
+        }
+        return false;
+    }
+
+    // Kapt op MaxChars, maar op een woordgrens: schuift terug tot de laatste witruimte vóór de grens (harde afkap als er geen is).
+    private static string Truncate(string text)
+    {
+        if (text.Length <= MaxChars) return text;
+        var cut = text.LastIndexOf(' ', MaxChars - 1);
+        return (cut > 0 ? text[..cut] : text[..MaxChars]).TrimEnd();
     }
 
     private static bool TryPath(JsonElement root, out JsonElement result, params string[] path)
@@ -96,11 +122,26 @@ public sealed partial class PageFetcher(HttpClient http)
         return Whitespace().Replace(HtmlEntity.DeEntitize(doc.DocumentNode.InnerText), " ").Trim();
     }
 
-    /// <summary>Organisatie-contact blijft (algemene nummers, info@/…); mobiele nummers en persoonlijke e-mails (voornaam.achternaam@) gaan weg.</summary>
+    // Afdelings-/functie-adressen (info@, wmo.loket@, contact.wonen@…) zijn organisatorisch en blijven staan.
+    private static readonly HashSet<string> OrganisationalWords = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "info", "contact", "gemeente", "wmo", "loket", "zorg", "welzijn", "team", "afdeling",
+        "balie", "secretariaat", "redactie", "post", "receptie", "klantenservice", "meldpunt",
+    };
+
+    /// <summary>Organisatie-contact blijft (algemene nummers, info@/wmo.loket@/…); mobiele nummers en persoonlijke
+    /// e-mails (voornaam.achternaam@) gaan weg.
+    /// Bekende beperkingen (geaccepteerd risico, ADR-0002 — bronnen zijn organisatiepagina's): initialen zonder punt
+    /// (jdevries@) worden niet herkend als persoonlijk, koppelnamen (jan-de.vries@) evenmin, en local parts met meer
+    /// dan twee punten worden niet gematcht.</summary>
     public static string RemovePersonalContacts(string text)
     {
         text = MobilePhone().Replace(text, "[telefoon verwijderd]");
-        text = PersonalEmail().Replace(text, "[e-mail verwijderd]");
+        text = PersonalEmail().Replace(text, m =>
+        {
+            var firstSegment = m.Value[..m.Value.IndexOf('.')];
+            return OrganisationalWords.Contains(firstSegment) ? m.Value : "[e-mail verwijderd]";
+        });
         return text;
     }
 

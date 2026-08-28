@@ -45,6 +45,40 @@ public class PageFetcherTests
         Assert.Contains("info@zoetermeer.nl", text);
     }
 
+    [Fact]
+    public void Related_content_widgets_inside_paragraphs_are_ignored()
+    {
+        var html = """
+        <html><body><script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{"contentDetails":{"data":{"route":{"nodeContext":{
+          "title":"Test","fieldParagraphs":[
+            {"entity":{"entityBundle":"text","fieldText":{"processed":"<p>Eigen tekst</p>"}}},
+            {"entity":{"entityBundle":"related_content","__typename":"ParagraphRelatedContent","fieldItems":[{"entity":{"fieldTitle":"Ander product","fieldText":{"processed":"<p>Andere pagina</p>"}}}]}},
+            {"entity":{"__typename":"ParagraphSearch","fieldTitle":"Zoeken","fieldText":{"processed":"<p>zoekwidget</p>"}}}
+          ]}}}}}}}</script></body></html>
+        """;
+        var page = PageFetcher.ExtractZoetermeer(html)!;
+        Assert.Equal("Test. Eigen tekst", page.Text);
+    }
+
+    [Theory]
+    [InlineData("wmo.loket@zoetermeer.nl", true)]
+    [InlineData("info.zoetermeer@zoetermeer.nl", true)]
+    [InlineData("contact.wonen@zoetermeer.nl", true)]
+    [InlineData("jan.devries@zoetermeer.nl", false)]
+    [InlineData("j.devries@zoetermeer.nl", false)]
+    public void Department_addresses_are_kept_personal_ones_removed(string email, bool kept)
+        => Assert.Equal(kept, PageFetcher.RemovePersonalContacts("mail " + email).Contains(email));
+
+    [Fact]
+    public void Truncation_happens_on_a_word_boundary()
+    {
+        var word = "woord ";
+        var html = "<html><body><script id=\"__NEXT_DATA__\" type=\"application/json\">{\"props\":{\"pageProps\":{\"contentDetails\":{\"data\":{\"route\":{\"nodeContext\":{\"title\":\"T\",\"fieldParagraphs\":[{\"entity\":{\"entityBundle\":\"text\",\"fieldText\":{\"processed\":\"<p>" + string.Concat(Enumerable.Repeat(word, 2000)) + "</p>\"}}}]}}}}}}}</script></body></html>";
+        var page = PageFetcher.ExtractZoetermeer(html)!;
+        Assert.True(page.Text.Length <= PageFetcher.MaxChars);
+        Assert.EndsWith("woord", page.Text);
+    }
+
     [Theory]
     [InlineData("https://www.zoetermeer.nl/zoetermeerpas", true)]
     [InlineData("https://www.zoetermeer.nl/x.pdf", false)]
@@ -62,7 +96,7 @@ public class PageFetcherTests
         var sw = System.Diagnostics.Stopwatch.StartNew();
         await f.FetchAsync(new Uri("https://www.zoetermeer.nl/a"));
         await f.FetchAsync(new Uri("https://www.zoetermeer.nl/b"));
-        Assert.True(sw.ElapsedMilliseconds >= 500);
+        Assert.True(sw.ElapsedMilliseconds >= 590);
         Assert.All(handler.UserAgents, ua => Assert.Contains("sociale-kaart-rag", ua));
         Assert.Null(await f.FetchAsync(new Uri("https://www.denhaag.nl/nl/x/")));
         Assert.Equal(2, handler.UserAgents.Count);

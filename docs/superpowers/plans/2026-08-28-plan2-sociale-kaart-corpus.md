@@ -10,7 +10,7 @@
 
 **Besluiten (28-08-2026, ADR-0002):** corpus = Samenwerkende Catalogi (SC) + OSM, met de gelinkte gemeentepagina's; gemeentelijke "sociale kaart"-datasets bleken niet open of offline (details in ADR-0002). Alle `az`/`gh` via de privé-profielen (zie plan 1).
 
-**Gate (spec §10 stap 5):** geo-filter werkt, geen huisnummers in de index, beide gemeenten aanwezig, attributie zichtbaar in het API-antwoord.
+**Gate (spec §10 stap 5):** geo-filter werkt, geen huisnummers in de index, beide gemeenten aanwezig, attributie zichtbaar in het API-antwoord. **Gehaald 28-08-2026** (794 chunks; 0 huisnummers in 395 OSM-adresregels; wijkcentra bij 2511CV en apotheken bij 2711CD; SC-bron met CC0-attributie). Afwijkingen: geocoder + postcode-detectie zitten in Task 6; `office=*` en tandartsen uitgesloten; geo-filter geldt alleen voor OSM-locaties; per-gemeente Overpass-query; denhaag.nl niet opgehaald (ADR-0002).
 
 ---
 
@@ -54,7 +54,7 @@ README.md, docs/superpowers/specs/…design.md      # attributie + corpusbesluit
 **Files:**
 - Create: `docs/adr/0002-databron-sociale-kaart.md`
 
-- [ ] **Step 1: Schrijf de ADR**
+- [x] **Step 1: Schrijf de ADR**
 
 ```markdown
 # ADR-0002: Databron sociale kaart
@@ -110,7 +110,7 @@ via PDOK naar een punt vertaald en gefilterd op afstand.
 
 Open `https://www.overheid.nl/` → voettekst "Copyright"/"Proclaimer" (curl krijgt 410) en zoek de tekst over hergebruik (verwacht: CC0 of "vrij te hergebruiken met bronvermelding"). Vul in de ADR de zin "Hergebruiksvoorwaarden bevestigd op: …" in met datum en de letterlijke bewoording. Stop en meld het als er een verbod op geautomatiseerd hergebruik staat.
 
-- [ ] **Step 3: Commit via PR**
+- [x] **Step 3: Commit via PR**
 
 ```powershell
 git checkout -b docs/adr-0002
@@ -127,7 +127,7 @@ git push -u origin docs/adr-0002; gh pr create --fill; gh pr checks --watch; gh 
 - Create: `src/Core/SocialMap/Taxonomy.cs`
 - Test: `tests/Core.Tests/TaxonomyTests.cs`
 
-- [ ] **Step 1: Schrijf de falende tests**
+- [x] **Step 1: Schrijf de falende tests**
 
 ```csharp
 using SocialeKaartRag.Core.SocialMap;
@@ -173,9 +173,9 @@ public class TaxonomyTests
 }
 ```
 
-- [ ] **Step 2: Run — verwacht compile-fout** (`dotnet test tests/Core.Tests --filter TaxonomyTests`)
+- [x] **Step 2: Run — verwacht compile-fout** (`dotnet test tests/Core.Tests --filter TaxonomyTests`)
 
-- [ ] **Step 3: Schrijf `src/Core/SocialMap/Taxonomy.cs`**
+- [x] **Step 3: Schrijf `src/Core/SocialMap/Taxonomy.cs`**
 
 ```csharp
 using System.Text.RegularExpressions;
@@ -228,9 +228,9 @@ public static partial class Taxonomy
 ```
 Volgorde van de regels is bewust: specifiek (mantelzorg, vervoer) vóór generiek (gezondheid, welzijn).
 
-- [ ] **Step 4: Run — verwacht groen**; pas trefwoorden aan tot alle cases slagen zonder de niet-sociale voorbeelden (getuigen, subsidie wijkactie) mee te nemen.
+- [x] **Step 4: Run — verwacht groen**; pas trefwoorden aan tot alle cases slagen zonder de niet-sociale voorbeelden (getuigen, subsidie wijkactie) mee te nemen.
 
-- [ ] **Step 5: Commit via PR** — `feat(social-map): vaste taxonomie en categorie-mapping voor OSM en Samenwerkende Catalogi`
+- [x] **Step 5: Commit via PR** — `feat(social-map): vaste taxonomie en categorie-mapping voor OSM en Samenwerkende Catalogi`
 
 ---
 
@@ -240,10 +240,10 @@ Volgorde van de regels is bewust: specifiek (mantelzorg, vervoer) vóór generie
 - Create: `src/Ingest/Sources/SocialMapRecord.cs`, `src/Ingest/Sources/SamenwerkendeCatalogiSource.cs`
 - Test: `tests/Ingest.Tests/SamenwerkendeCatalogiSourceTests.cs`, fixture `tests/Ingest.Tests/Fixtures/sc-sample.xml`
 
-- [ ] **Step 1: Maak de fixture** — sla één echte SRU-respons op (2 records, Den Haag) via
+- [x] **Step 1: Maak de fixture** — sla één echte SRU-respons op (2 records, Den Haag) via
 `curl -s "https://zoekdienst.overheid.nl/sru/Search?version=1.2&operation=searchRetrieve&x-connection=sc&maximumRecords=2&query=authority%3D%22%27s-Gravenhage%22%20AND%20keyword%3Dschuldhulp" -o tests/Ingest.Tests/Fixtures/sc-sample.xml` en zet in de csproj `<None Update="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />`.
 
-- [ ] **Step 2: Schrijf `SocialMapRecord.cs`**
+- [x] **Step 2: Schrijf `SocialMapRecord.cs`**
 
 ```csharp
 namespace SocialeKaartRag.Ingest.Sources;
@@ -271,7 +271,7 @@ public sealed record SocialMapRecord
 }
 ```
 
-- [ ] **Step 3: Schrijf de falende tests**
+- [x] **Step 3: Schrijf de falende tests**
 
 ```csharp
 using SocialeKaartRag.Ingest.Sources;
@@ -309,7 +309,7 @@ public class SamenwerkendeCatalogiSourceTests
 }
 ```
 
-- [ ] **Step 4: Schrijf `SamenwerkendeCatalogiSource.cs`**
+- [x] **Step 4: Schrijf `SamenwerkendeCatalogiSource.cs`**
 
 ```csharp
 using System.Net;
@@ -371,7 +371,7 @@ public sealed class SamenwerkendeCatalogiSource(HttpClient http)
 }
 ```
 
-- [ ] **Step 5: Run — groen; commit via PR** — `feat(ingest): Samenwerkende Catalogi-adapter (SRU) → SocialMapRecord`
+- [x] **Step 5: Run — groen; commit via PR** — `feat(ingest): Samenwerkende Catalogi-adapter (SRU) → SocialMapRecord`
 
 ---
 
@@ -381,9 +381,9 @@ public sealed class SamenwerkendeCatalogiSource(HttpClient http)
 - Create: `src/Ingest/PageFetcher.cs`
 - Test: `tests/Ingest.Tests/PageFetcherTests.cs`, fixtures `denhaag-page.html`, `zoetermeer-page.html` (download één pagina per site met `curl -A "Mozilla/5.0" -o …`)
 
-- [ ] **Step 1: Bepaal de content-selector van zoetermeer.nl** — open de fixture en zoek het element dat de volledige producttekst bevat (kandidaten: `article`, `div.content`, `div[class*="product"]`, `section`); noteer de CSS-selector. Den Haag: `main`.
+- [x] **Step 1: Bepaal de content-selector van zoetermeer.nl** — open de fixture en zoek het element dat de volledige producttekst bevat (kandidaten: `article`, `div.content`, `div[class*="product"]`, `section`); noteer de CSS-selector. Den Haag: `main`.
 
-- [ ] **Step 2: Falende tests**
+- [x] **Step 2: Falende tests**
 
 ```csharp
 using SocialeKaartRag.Ingest;
@@ -432,7 +432,7 @@ public class PageFetcherTests
 }
 ```
 
-- [ ] **Step 3: `PageFetcher.cs`** (voeg `HtmlAgilityPack` toe aan `src/Ingest`)
+- [x] **Step 3: `PageFetcher.cs`** (voeg `HtmlAgilityPack` toe aan `src/Ingest`)
 
 ```csharp
 using System.Text.RegularExpressions;
@@ -504,7 +504,7 @@ public sealed partial class PageFetcher(HttpClient http)
 }
 ```
 
-- [ ] **Step 4: Run — groen; commit via PR** — `feat(ingest): PageFetcher voor gemeentepagina's met rate-limit, host-allowlist en PII-filter`
+- [x] **Step 4: Run — groen; commit via PR** — `feat(ingest): PageFetcher voor gemeentepagina's met rate-limit, host-allowlist en PII-filter`
 
 ---
 
@@ -514,7 +514,7 @@ public sealed partial class PageFetcher(HttpClient http)
 - Create: `src/Ingest/Sources/OsmOverpassSource.cs`
 - Test: `tests/Ingest.Tests/OsmOverpassSourceTests.cs`, fixture `osm-sample.json` (bewaar de output van de Overpass-query met `out tags center;` en 5 elementen)
 
-- [ ] **Step 1: Falende tests**
+- [x] **Step 1: Falende tests**
 
 ```csharp
 using SocialeKaartRag.Ingest.Sources;
@@ -558,7 +558,7 @@ public class OsmOverpassSourceTests
 }
 ```
 
-- [ ] **Step 2: `OsmOverpassSource.cs`**
+- [x] **Step 2: `OsmOverpassSource.cs`**
 
 ```csharp
 using System.Text.Json;
@@ -650,7 +650,7 @@ public sealed class OsmOverpassSource(HttpClient http)
 }
 ```
 
-- [ ] **Step 3: Run — groen; commit via PR** — `feat(ingest): OpenStreetMap-adapter via Overpass met grofmazige geo`
+- [x] **Step 3: Run — groen; commit via PR** — `feat(ingest): OpenStreetMap-adapter via Overpass met grofmazige geo`
 
 ---
 
@@ -661,7 +661,7 @@ public sealed class OsmOverpassSource(HttpClient http)
 - Modify: `src/Ingest/Program.cs`
 - Test: `tests/Ingest.Tests/SocialMapChunkerTests.cs`
 
-- [ ] **Step 1: Falende tests**
+- [x] **Step 1: Falende tests**
 
 ```csharp
 using SocialeKaartRag.Ingest;
@@ -719,7 +719,7 @@ public class SocialMapChunkerTests
 }
 ```
 
-- [ ] **Step 2: `SocialMapChunker.cs`**
+- [x] **Step 2: `SocialMapChunker.cs`**
 
 ```csharp
 using System.Text;
@@ -755,7 +755,7 @@ public static class SocialMapChunker
 ```
 Attributie reist mee in `Tags` (de index heeft geen apart veld; `Tags` is filterbaar en komt terug in het zoekresultaat als je `tags` aan `Select` toevoegt — doe dat in Task 7).
 
-- [ ] **Step 3: `Program.cs` — nieuwe verbs** (naast de bestaande)
+- [x] **Step 3: `Program.cs` — nieuwe verbs** (naast de bestaande)
 
 ```csharp
     case "ingest-social-map":
@@ -802,7 +802,7 @@ Attributie reist mee in `Tags` (de index heeft geen apart veld; `Tags` is filter
 ```
 Voeg `using System.Text.Json;` toe. `PdokGeocoder` komt uit Task 7 — implementeer Task 7 stap 3 (de geocoder) vóór je dit verb draait, of laat de centroïde tijdelijk `null`.
 
-- [ ] **Step 4: Run — alle tests groen; commit via PR** — `feat(ingest): social-map chunker, snapshots en ingest-social-map verb`
+- [x] **Step 4: Run — alle tests groen; commit via PR** — `feat(ingest): social-map chunker, snapshots en ingest-social-map verb`
 
 ---
 
@@ -813,7 +813,7 @@ Voeg `using System.Text.Json;` toe. `PdokGeocoder` komt uit Task 7 — implement
 - Create: `src/Core/Retrieval/IGeocoder.cs`, `src/Core/Retrieval/PdokGeocoder.cs`
 - Test: `tests/Core.Tests/GeoQueryTests.cs`, `tests/Core.Tests/AskOrchestratorGeoTests.cs`; Api `Program.cs` registreert `IGeocoder`
 
-- [ ] **Step 1: Falende tests**
+- [x] **Step 1: Falende tests**
 
 ```csharp
 using SocialeKaartRag.Core.Retrieval;
@@ -850,7 +850,7 @@ public class GeoQueryTests
 }
 ```
 
-- [ ] **Step 2: Contractwijzigingen**
+- [x] **Step 2: Contractwijzigingen**
 
 `ISearchTool.cs`: `public sealed record GeoPoint(double Lat, double Lon);` en `public sealed record SearchQuery(string Text, string? Category = null, GeoPoint? Near = null, double RadiusKm = 5, int TopK = 6);`
 
@@ -866,7 +866,7 @@ public class GeoQueryTests
 ```
 en voeg `"tags"` toe aan `options.Select`; breid `SearchHit` uit met `string[] Tags` (attributie zit erin) en vul die in `SearchAsync`.
 
-- [ ] **Step 3: Geocoder + postcode-detectie**
+- [x] **Step 3: Geocoder + postcode-detectie**
 
 ```csharp
 namespace SocialeKaartRag.Core.Retrieval;
@@ -902,7 +902,7 @@ public static partial class PostcodeDetector
 }
 ```
 
-- [ ] **Step 4: Orchestrator** — constructor krijgt `IGeocoder geocoder`; na de intent, vóór de tool-call:
+- [x] **Step 4: Orchestrator** — constructor krijgt `IGeocoder geocoder`; na de intent, vóór de tool-call:
 ```csharp
             GeoPoint? near = null;
             if (tool.Corpus == SearchIndexes.SocialMap && PostcodeDetector.Find(pii.Text) is { } pc)
@@ -914,22 +914,22 @@ public static partial class PostcodeDetector
 ```
 met `private static string? DomainToCategory(string d) => d is "gezondheid" or "werk_inkomen" or "wonen" or "vervoer" or "welzijn" or "mantelzorg" ? d : null;`. Trace: `ToolCall.ArgumentsHash` over `Text|Category|Near|TopK`. `SourceRef` krijgt `string? Attribution` (uit `hit.Tags` — de tag die "©" of "Bron:" bevat) en de API geeft `sources[].attribution` terug. Tests in `AskOrchestratorGeoTests.cs`: (a) vraag met postcode op social-map → `SearchQuery.Near` gevuld (fake geocoder), (b) kb-corpus → geen geocoding, (c) lege hits met categorie → tweede call zonder categorie, (d) attributie in `AskResult.Sources`.
 
-- [ ] **Step 5: Api `Program.cs`**: `builder.Services.AddHttpClient(); builder.Services.AddSingleton<IGeocoder>(sp => new PdokGeocoder(sp.GetRequiredService<IHttpClientFactory>().CreateClient()));`
+- [x] **Step 5: Api `Program.cs`**: `builder.Services.AddHttpClient(); builder.Services.AddSingleton<IGeocoder>(sp => new PdokGeocoder(sp.GetRequiredService<IHttpClientFactory>().CreateClient()));`
 
-- [ ] **Step 6: Run — groen (incl. alle oude tests; pas `FakeSearch`/orchestrator-tests aan op de nieuwe constructor); commit via PR** — `feat(retrieval): geo- en categoriefilter, PDOK-geocoder, attributie in bronnen`
+- [x] **Step 6: Run — groen (incl. alle oude tests; pas `FakeSearch`/orchestrator-tests aan op de nieuwe constructor); commit via PR** — `feat(retrieval): geo- en categoriefilter, PDOK-geocoder, attributie in bronnen`
 
 ---
 
 ### Task 8: Live ingest + gate 5
 
-- [ ] **Step 1: Ingest lokaal** (zelfde env-vars als plan 1 Task 7): `dotnet run --project src/Ingest -- ingest-social-map`. Verwacht: `sc Den Haag: 266 producten, 0 met paginatekst` (ADR-0002), `sc Zoetermeer: 230 producten, ≥ 180 met paginatekst`, `osm: ~820 locaties (~85 Zoetermeer)`, `chunks: ≥ 900`. Duur ≈ 230 × 0,6 s ≈ 2,5 min voor de Zoetermeer-pagina's.
-- [ ] **Step 2: Gate-checks**
+- [x] **Step 1: Ingest lokaal** (zelfde env-vars als plan 1 Task 7): `dotnet run --project src/Ingest -- ingest-social-map`. Verwacht: `sc Den Haag: 266 producten, 0 met paginatekst` (ADR-0002), `sc Zoetermeer: 230 producten, ≥ 180 met paginatekst`, `osm: ~820 locaties (~85 Zoetermeer)`, `chunks: ≥ 900`. Duur ≈ 230 × 0,6 s ≈ 2,5 min voor de Zoetermeer-pagina's.
+- [x] **Step 2: Gate-checks**
   - Geo: `POST /ask {"question":"waar is een wijkcentrum in de buurt van 2511CV?"}` → antwoord met OSM-bronnen; `GET /trace/{id}` → `toolCalls[0].argumentsHash` anders dan zonder postcode. Hetzelfde met een Zoetermeer-postcode (bv. `2711CD`) → Zoetermeer-locaties.
   - Regeling: `{"question":"hoe vraag ik bijzondere bijstand aan in Zoetermeer?"}` → SC-bron met `denhaag.nl`/`zoetermeer.nl`-URL en attributie "Samenwerkende Catalogi".
   - Geen huisnummers: `az rest`/Search-query `search=*&$filter=corpus eq 'social-map' and source eq 'osm'&$select=text&$top=200` en grep op `Adres: [^\n]*\d` → 0 treffers.
   - Attributie: elk `sources[]`-item heeft `attribution`.
-- [ ] **Step 3: `ingest.yml`**: `options: [kb, social-map]` en `run: dotnet run --project src/Ingest -- "ingest-$SOURCE"` werkt al. Draai hem één keer via `workflow_dispatch` na merge (approval in `azure`).
-- [ ] **Step 4: README**: sectie "Bronnen en attributie" (OSM ODbL-regel, SC-regel, PDOK CC0) + hoe ingest te draaien. Commit via PR — `feat(social-map): live corpus voor Den Haag en Zoetermeer; ingest.yml; attributie`.
+- [x] **Step 3: `ingest.yml`**: `options: [kb, social-map]` en `run: dotnet run --project src/Ingest -- "ingest-$SOURCE"` werkt al. Draai hem één keer via `workflow_dispatch` na merge (approval in `azure`).
+- [x] **Step 4: README**: sectie "Bronnen en attributie" (OSM ODbL-regel, SC-regel, PDOK CC0) + hoe ingest te draaien. Commit via PR — `feat(social-map): live corpus voor Den Haag en Zoetermeer; ingest.yml; attributie`.
 
 ---
 

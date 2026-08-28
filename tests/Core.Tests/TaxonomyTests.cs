@@ -7,7 +7,6 @@ public class TaxonomyTests
     [Theory]
     [InlineData("doctors", null, null, null, "gezondheid")]
     [InlineData(null, "pharmacy", null, null, "gezondheid")]
-    [InlineData("dentist", "dentist", null, null, "gezondheid")]
     [InlineData("social_facility", null, "assisted_living", null, "wonen")]
     [InlineData("social_facility", null, "nursing_home", null, "wonen")]
     [InlineData("social_facility", null, "shelter", null, "wonen")]
@@ -16,7 +15,7 @@ public class TaxonomyTests
     [InlineData("community_centre", null, null, null, "welzijn")]
     [InlineData(null, null, null, "ngo", "welzijn")]
     [InlineData(null, "counselling", null, null, "welzijn")]
-    [InlineData("social_facility", null, "day_care", null, "mantelzorg")]
+    [InlineData("social_facility", null, "day_care", null, "gezondheid")]
     public void Maps_osm_tags(string? amenity, string? healthcare, string? facility, string? office, string expected)
         => Assert.Equal(expected, Taxonomy.FromOsm(amenity, healthcare, facility, office));
 
@@ -24,6 +23,7 @@ public class TaxonomyTests
     [InlineData("cafe", null, null, null)]
     [InlineData(null, null, null, "company")]
     [InlineData(null, null, null, null)]
+    [InlineData("dentist", "dentist", null, null)]
     public void Unknown_osm_tags_map_to_null(string? amenity, string? healthcare, string? facility, string? office)
         => Assert.Null(Taxonomy.FromOsm(amenity, healthcare, facility, office));
 
@@ -42,6 +42,16 @@ public class TaxonomyTests
     [InlineData("Bestuur", "Subsidie duurzame wijkactie aanvragen", "Voor een duurzaam project in uw wijk.", null)]
     [InlineData(null, "Melding doen over dieren", "Vindt u een zwerfkat?", null)]
     [InlineData("Natuur en milieu", "Subsidie voor opvangen regenwater", "regenton of groen dak", null)]
+    [InlineData(null, "Meedoenregeling", "Bijdrage voor inwoners met een laag inkomen", "werk_inkomen")]
+    [InlineData(null, "Leerlingenvervoer aanvragen", "", "vervoer")]
+    [InlineData(null, "Woonwagenstandplaats", "", "wonen")]
+    [InlineData(null, "Kinderopvangtoeslag", "Tegemoetkoming in de kosten", "werk_inkomen")]
+    [InlineData(null, "Dagbesteding ouderen", "", "gezondheid")]
+    [InlineData(null, "Zorgen voor uw tuin", "Groenonderhoud", null)]
+    [InlineData(null, "Verzorgingsplaats langs de A4", "", null)]
+    [InlineData(null, "Collectieve zorgverzekering minima", "", "werk_inkomen")]
+    [InlineData(null, "Thuiszorg aanvragen", "", "gezondheid")]
+    [InlineData(null, "Respijtzorg voor mantelzorgers", "", "mantelzorg")]
     public void Maps_sc_subject_and_keywords(string? subject, string title, string abstractText, string? expected)
         => Assert.Equal(expected, Taxonomy.FromSamenwerkendeCatalogi(subject, title, abstractText));
 

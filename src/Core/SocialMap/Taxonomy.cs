@@ -10,23 +10,27 @@ public static class Taxonomy
     public static string? FromOsm(string? amenity, string? healthcare, string? socialFacility, string? office)
     {
         if (socialFacility is "assisted_living" or "group_home" or "nursing_home" or "shelter") return "wonen";
-        if (socialFacility is "day_care") return "mantelzorg";
+        if (socialFacility is "day_care") return "gezondheid";
         if (socialFacility is not null || amenity is "social_facility" or "community_centre" or "social_centre") return "welzijn";
         if (healthcare is "counselling") return "welzijn";
-        if (healthcare is not null || amenity is "doctors" or "pharmacy" or "clinic" or "hospital" or "dentist") return "gezondheid";
+        if (healthcare is "dentist") return null;
+        if (healthcare is not null || amenity is "doctors" or "pharmacy" or "clinic" or "hospital") return "gezondheid";
         if (office is "charity" or "ngo" or "association") return "welzijn";
         return null;
     }
 
     // Specifiek vóór generiek. Trefwoorden op titel+samenvatting; het SC-onderwerp is te grof en vaak leeg.
+    // Volgorde: mantelzorg, vervoer, wonen, werk_inkomen, welzijn, gezondheid — werk_inkomen vóór welzijn zodat
+    // "meedoenregeling"/"toeslag" niet op het welzijn-trefwoord "meedoen" blijft hangen; wonen vóór werk_inkomen
+    // zodat "huurtoeslag" wonen blijft.
     private static readonly (string Category, Regex Pattern)[] ScRules =
     [
         ("mantelzorg", Rx(@"mantelzorg|respijt")),
-        ("vervoer", Rx(@"gehandicaptenparkeer|regiotaxi|wmo-vervoer|vervoersvoorziening|scootmobiel|rolstoel")),
-        ("wonen", Rx(@"urgentie|woning|huisvesting|huurtoeslag|woonkosten|dakloos|\bopvang\b|beschermd wonen|woningaanpassing")),
+        ("vervoer", Rx(@"gehandicaptenparkeer|regiotaxi|wmo-vervoer|vervoersvoorziening|scootmobiel|rolstoel|\bvervoer\b|leerlingenvervoer")),
+        ("wonen", Rx(@"urgentie|woning|huisvesting|huurtoeslag|woonkosten|dakloos|\bopvang\b|beschermd wonen|woningaanpassing|\bwonen\b|woonwagen|woon-")),
+        ("werk_inkomen", Rx(@"bijstand|schuld|inkomen|uitkering|kredietbank|armoede|minima|kwijtschelding|werkzoek|werkloos|werk en inkomen|re-integratie|\bbaan\b|voordeelpas|geld lenen|meedoenregeling|toeslag|tegemoetkoming")),
         ("welzijn", Rx(@"vrijwillig|welzijn|buurthuis|wijkcentrum|eenzaam|ontmoet|meedoen|inburger|taalles|maatschappelijk")),
-        ("werk_inkomen", Rx(@"bijstand|schuld|inkomen|uitkering|kredietbank|armoede|minima|kwijtschelding|\bwerk\b|werkzoek|re-integratie|voordeelpas|geld lenen")),
-        ("gezondheid", Rx(@"\bwmo\b|zorg|gezondheid|hulpmiddel|thuiszorg|ggd|verslaving|jeugdhulp|dagbesteding|huishoudelijke hulp|hulp bij het huishouden")),
+        ("gezondheid", Rx(@"\bwmo\b|zorg\b|zorgverzekering|zorgtoeslag|zorgverlening|gezondheidszorg|gezondheid|hulpmiddel|thuiszorg|ggd|verslaving|jeugdhulp|dagbesteding|huishoudelijke hulp|hulp bij het huishouden")),
     ];
 
     private static readonly Dictionary<string, string> ScSubjects = new(StringComparer.OrdinalIgnoreCase)

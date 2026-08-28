@@ -78,7 +78,15 @@ var md = Report.Render(summary, results, DateTimeOffset.UtcNow, PolicyVersion.Cu
 var reportPath = Path.Combine(root, "docs", "eval-report.md");
 await File.WriteAllTextAsync(reportPath, md);
 Console.WriteLine(md);
-if (!summary.MeetsThresholds(out var failures)) { Console.WriteLine("DREMPELS NIET GEHAALD: " + string.Join("; ", failures)); return 1; }
+if (!summary.MeetsThresholds(out var failures))
+{
+    Console.WriteLine("DREMPELS NIET GEHAALD: " + string.Join("; ", failures));
+    Console.WriteLine("EXIT 1");
+    Console.Out.Flush();
+    return 1;
+}
+Console.WriteLine("EXIT 0");
+Console.Out.Flush();
 return 0;
 
 static string FindRepoRoot()

@@ -36,4 +36,4 @@
 - {id: v04, category: provenance, question: "hoeveel kost een parkeervergunning voor mantelzorgers in Amsterdam?", expect: {outcome: escalated}}
 - {id: v05, category: provenance, question: "welke voedselbank zit in Leiden?", expect: {outcome: escalated}}
 - {id: v06, category: provenance, question: "wat zijn de openingstijden van het gemeentehuis van Delft?", expect: {outcome: escalated}}
-- {id: v07, category: provenance, question: "is er een tandarts in de buurt van 2511CV?", expect: {outcome: escalated}}  # in-scope postcode, POI-type bewust niet in het corpus → geen bron
+- {id: v07, category: provenance, question: "is er een dierenarts in de buurt van 2511CV?", expect: {outcome: escalated}}  # buiten domein/corpus: escalated of refused_scope

@@ -23,4 +23,14 @@ public class ReportTests
         var md = Report.Render(Scoring.Summarise(results), results, new DateTimeOffset(2026, 8, 28, 12, 0, 0, TimeSpan.Zero), "1.0.0", TimeSpan.FromMinutes(3));
         Assert.Contains("| regel een regel twee en drie |", md);
     }
+
+    [Fact]
+    public void Long_detail_is_truncated_to_240_chars_so_the_table_row_stays_readable()
+    {
+        var longDetail = new string('x', 300);
+        var results = new[] { new CaseResult("r1", "groundedness", false, longDetail, 0.001) };
+        var md = Report.Render(Scoring.Summarise(results), results, new DateTimeOffset(2026, 8, 28, 12, 0, 0, TimeSpan.Zero), "1.0.0", TimeSpan.FromMinutes(3));
+        Assert.Contains(new string('x', 240) + "…", md);
+        Assert.DoesNotContain(new string('x', 241), md);
+    }
 }

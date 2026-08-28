@@ -13,6 +13,9 @@
     <Project Path="src/Ingest/SocialeKaartRag.Ingest.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/Api.Tests/">
+    <Project Path="tests/Api.Tests/SocialeKaartRag.Api.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/Core.Tests/">
     <Project Path="tests/Core.Tests/SocialeKaartRag.Core.Tests.csproj" />
   </Folder>

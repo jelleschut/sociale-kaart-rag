@@ -13,3 +13,15 @@ Uit de afsluitende review over de hele plan-1-implementatie. Geen blockers; op t
 | 7 | `Embedder`: ook retry op 5xx/timeouts | robuustere ingest | `src/Ingest/Embedder.cs` | 2 |
 | 8 | semgrep-container op digest pinnen | consistent met SHA-pinning | `.github/workflows/ci.yml` | 4 |
 | 9 | kb-POC-corpus verwijderen (index `kb`, `ingest-kb`, `platform_kennis`-intent, spec §2) | besluit 27-08 | overal | na 2 |
+
+## Na plan 2 (eindreview 28-08-2026)
+
+| # | Onderwerp | Waarom | Waar | Plan |
+|---|---|---|---|---|
+| 10 | **Beleidsvraag**: OSM-`name` van eenmanspraktijken ("Huisartsenpraktijk J. de Vries") is mogelijk een persoonsgegeven; nu ongefilterd geïndexeerd | AVG; spec "organisaties, geen personen" | `OsmOverpassSource.cs` (Name), ADR-0002 Gevolgen | besluit Jelle; daarna ADR-0002 aanvullen (risico-acceptatie óf generalisatie "Huisartsenpraktijk (naam verwijderd)") |
+| 11 | OSM `phone`/`contact:phone` niet door `RemovePersonalContacts` (mobiel nummer van een eenmanszaak) | consistent PII-beleid | `OsmOverpassSource.cs` | 3 |
+| 12 | Zoetermeer-paginatekst (niet-commercieel + bronvermelding) en SC-metadata (CC0) zitten in één `attribution:`-string | twee licentiegronden apart benoemen | `SocialMapChunker`, `Program.cs` ingest | 4 |
+| 13 | Stale kb-verwijzingen: spec §10 gate 3, ADR-0003 "~400 kb-chunks" | docs-hygiëne | docs | 4 |
+| 14 | `PostcodeDetector` accepteert SA/SD/SS-letterparen (PostNL kent ze niet) | precisie | `Geocoding.cs` | 4 |
+| 15 | Eval-cases voor geo-filter (DH-postcode → DH-hits, ZM → ZM, SC altijd) en voor praktijknamen | regressiebescherming | eval | 3 |
+| 16 | UI toont `sources[].attribution` zichtbaar (ODbL/CC0) | licentieplicht in de UI | htmx-pagina | 4 |

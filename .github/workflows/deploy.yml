@@ -47,6 +47,7 @@ jobs:
           ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
           ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_operator_object_id: ${{ vars.OPERATOR_OBJECT_ID }}
         run: |
           terraform init -input=false -backend-config="storage_account_name=${{ vars.TFSTATE_STORAGE_ACCOUNT }}" -backend-config="resource_group_name=${{ vars.TFSTATE_RG }}"
           terraform plan -input=false -out=tfplan

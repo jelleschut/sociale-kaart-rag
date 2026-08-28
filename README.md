@@ -156,7 +156,7 @@ dotnet test
 
 `Azure__OpenAiEndpoint`, `Azure__SearchEndpoint`, `Azure__StorageAccountUrl`,
 `Azure__ChatDeployment`, `Azure__EmbeddingDeployment` komen uit `terraform output`;
-authenticatie via `az login` (lokaal) of managed identity (Container App, CI).
+authenticatie via `az login` (lokaal) of managed identity (Container App, CI). Lokaal `terraform apply` draaien: zet `TF_VAR_operator_object_id` op je eigen Entra object-id (`az ad signed-in-user show --query id -o tsv`) — dezelfde waarde staat in CI als repo-variabele `OPERATOR_OBJECT_ID`, zodat de operator-datarollen niet per apply wisselen.
 
 ## Documentatie
 

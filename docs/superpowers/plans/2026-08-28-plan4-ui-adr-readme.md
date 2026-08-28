@@ -37,7 +37,7 @@ README.md                                   # herschreven
 
 **Files:** `src/Core/IAskOrchestrator.cs`, `src/Core/AskOrchestrator.cs` (implements), `src/Api/AskHtml.cs`, `src/Api/AskEndpoint.cs`, `src/Api/Program.cs`, `src/Api/wwwroot/*`, `tests/Api.Tests/*`
 
-- [ ] **Step 1: Interface**
+- [x] **Step 1: Interface**
 ```csharp
 namespace SocialeKaartRag.Core;
 
@@ -48,7 +48,7 @@ public interface IAskOrchestrator
 ```
 `public sealed class AskOrchestrator(...) : IAskOrchestrator`. In `Program.cs`: `builder.Services.AddSingleton<IAskOrchestrator, AskOrchestrator>();` (en `AskOrchestrator` zelf niet meer los registreren). `AskEndpoint` neemt `IAskOrchestrator`.
 
-- [ ] **Step 2: Test-project**
+- [x] **Step 2: Test-project**
 ```powershell
 dotnet new xunit -n SocialeKaartRag.Api.Tests -o tests/Api.Tests
 Remove-Item tests/Api.Tests/UnitTest1.cs
@@ -58,7 +58,7 @@ dotnet add tests/Api.Tests package Microsoft.AspNetCore.Mvc.Testing
 ```
 `src/Api/SocialeKaartRag.Api.csproj`: `<InternalsVisibleTo Include="SocialeKaartRag.Api.Tests" />` is niet nodig als `AskHtml` public is; voeg wél `public partial class Program { }` toe onderaan `Program.cs` (nodig voor `WebApplicationFactory<Program>`).
 
-- [ ] **Step 3: Falende tests `tests/Api.Tests/AskHtmlTests.cs`**
+- [x] **Step 3: Falende tests `tests/Api.Tests/AskHtmlTests.cs`**
 ```csharp
 using SocialeKaartRag.Api;
 using SocialeKaartRag.Core;
@@ -125,7 +125,7 @@ public class AskHtmlTests
 }
 ```
 
-- [ ] **Step 4: `src/Api/AskHtml.cs`**
+- [x] **Step 4: `src/Api/AskHtml.cs`**
 ```csharp
 using System.Text;
 using System.Text.Encodings.Web;
@@ -190,7 +190,7 @@ public static class AskHtml
 }
 ```
 
-- [ ] **Step 5: Endpoint + pagina**
+- [x] **Step 5: Endpoint + pagina**
 
 `AskEndpoint.cs` — voeg toe naast `/ask`:
 ```csharp
@@ -247,7 +247,7 @@ public static class AskHtml
 
 `htmx.min.js`: vendor de laatste 2.x: `curl -sL -o src/Api/wwwroot/htmx.min.js https://unpkg.com/htmx.org@2/dist/htmx.min.js` en noteer versie + SHA-256 in een commentaar bovenin `index.html`. Geen CDN-verwijzing (CSP `default-src 'self'` in Task 2).
 
-- [ ] **Step 6: Endpoint-tests `tests/Api.Tests/EndpointTests.cs`** (WebApplicationFactory, `IAskOrchestrator` vervangen door een fake; Azure-clients vervangen door… `AddAzureClients` bouwt clients zonder netwerk aan te roepen — alleen `AzureOptions` moet ingevuld zijn: geef `Azure__*` dummy-URL's via `builder.UseSetting`)
+- [x] **Step 6: Endpoint-tests `tests/Api.Tests/EndpointTests.cs`** (WebApplicationFactory, `IAskOrchestrator` vervangen door een fake; Azure-clients vervangen door… `AddAzureClients` bouwt clients zonder netwerk aan te roepen — alleen `AzureOptions` moet ingevuld zijn: geef `Azure__*` dummy-URL's via `builder.UseSetting`)
 ```csharp
 using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -324,7 +324,7 @@ public class EndpointTests(ApiFactory f) : IClassFixture<ApiFactory>
 ```
 (`RemoveAll` uit `Microsoft.Extensions.DependencyInjection.Extensions`.) `BlobTraceSink`/`AppInsights` worden nooit aangeroepen omdat de fake-orchestrator geen trace schrijft.
 
-- [ ] **Step 7: Run — groen; lokaal bekijken** (`dotnet run --project src/Api --urls http://localhost:5088` met de Azure-env-vars, open http://localhost:5088). Commit via PR — `feat(ui): htmx-pagina met feit/samenvatting-badges, citaties, attributie en correlation-id`
+- [x] **Step 7: Run — groen; lokaal bekijken** (`dotnet run --project src/Api --urls http://localhost:5088` met de Azure-env-vars, open http://localhost:5088). Commit via PR — `feat(ui): htmx-pagina met feit/samenvatting-badges, citaties, attributie en correlation-id`
 
 ---
 
@@ -332,7 +332,7 @@ public class EndpointTests(ApiFactory f) : IClassFixture<ApiFactory>
 
 **Files:** `src/Api/Program.cs`, `src/Core/Trace/TraceRecord.cs`, `src/Core/AskOrchestrator.cs`, `tests/Api.Tests/HardeningTests.cs`, `tests/Core.Tests/TraceRecordTests.cs`
 
-- [ ] **Step 1: Falende tests**
+- [x] **Step 1: Falende tests**
 ```csharp
 // tests/Api.Tests/HardeningTests.cs
 public class HardeningTests(ApiFactory f) : IClassFixture<ApiFactory>
@@ -373,13 +373,13 @@ public class HardeningTests(ApiFactory f) : IClassFixture<ApiFactory>
 ```
 Trace-test: `TraceRecord` krijgt `ModelVersion`; `AskOrchestrator` vult `Model = "gpt-4.1-mini"` en `ModelVersion = "2025-04-14"` uit een modelstring `gpt-4.1-mini-2025-04-14` (helper `SplitModel(string)` → (name, version?)); test in `TraceRecordTests`: `SplitModel("gpt-4.1-mini-2025-04-14") == ("gpt-4.1-mini","2025-04-14")`, `SplitModel("gpt-4.1-mini") == ("gpt-4.1-mini", null)`.
 
-- [ ] **Step 2: Implementatie**
+- [x] **Step 2: Implementatie**
 - Headers: middleware `app.Use(async (ctx, next) => { ctx.Response.Headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"; …; await next(); });`
 - Rate limiting: `builder.Services.AddRateLimiter(o => { o.RejectionStatusCode = 429; o.AddFixedWindowLimiter("ask", w => { w.PermitLimit = 20; w.Window = TimeSpan.FromMinutes(1); w.QueueLimit = 0; }); });` `app.UseRateLimiter();` en `.RequireRateLimiting("ask")` op `/ask` en `/ask/fragment`. Partitie per client-IP: gebruik `o.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx => RateLimitPartition.GetFixedWindowLimiter(ctx.Connection.RemoteIpAddress?.ToString() ?? "anon", _ => new() { PermitLimit = 20, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));` — kies één van beide (GlobalLimiter per IP is het eenvoudigst; test verwacht 429 binnen 25 calls).
 - Exception handler: `builder.Services.AddProblemDetails(); app.UseExceptionHandler();` (ProblemDetails zonder detail in Production; in tests draait de host in `Development` → zet expliciet `builder.Environment.EnvironmentName`-onafhankelijk gedrag via `app.UseExceptionHandler(e => e.Run(async ctx => { ctx.Response.StatusCode = 500; await ctx.Response.WriteAsJsonAsync(new { type = "about:blank", title = "Interne fout", status = 500, correlationId = ctx.Response.Headers["X-Correlation-Id"].ToString() }); }));`).
 - `TraceRecord.ModelVersion` + `SplitModel` in `AskOrchestrator` (statisch, public voor de test).
 
-- [ ] **Step 3: Run — groen; commit via PR** — `feat(api): CSP/headers, per-IP rate limiting, ProblemDetails-exception-handler; modelVersion in trace`
+- [x] **Step 3: Run — groen; commit via PR** — `feat(api): CSP/headers, per-IP rate limiting, ProblemDetails-exception-handler; modelVersion in trace`
 
 ---
 
@@ -387,12 +387,12 @@ Trace-test: `TraceRecord` krijgt `ModelVersion`; `AskOrchestrator` vult `Model =
 
 **Files:** `docs/adr/0001-application-owned-orchestration.md`, `docs/adr/0004-guardrails-buiten-het-model.md`, `docs/traceability.md`, `README.md`, spec §10 stale regel
 
-- [ ] **Step 1: ADR-0001** — context (spec §3), opties: (A) application-owned orchestration in .NET met Foundry als model-runtime; (B) Azure AI Foundry Agent Service met AI Search-tool; (C) Semantic Kernel / Agent Framework. Afweging per criterium: controle over guardrails buiten het model (A ✔, B ✘: tool-keuze bij het model, C ±), evalueerbaarheid/traceability (A: elke stap eigen code en trace-veld), lock-in, kosten (A: alleen model-calls), complexiteit (B/C minder code, maar zwarte dozen). Besluit A; gevolgen: meer eigen code, maar elke policy-stap getest (verwijs naar `AskOrchestrator`, eval-categorieën).
-- [ ] **Step 2: ADR-0004** — de vijf lagen (PII-regex vóór het model; intent-classificatie met enum-schema; tool-allow-list met orchestrator-aanroep; untrusted-content-boundary met source-blokken + neutralisatie; escalatie op score/citaties + citatiefilter), waarom niet alleen system-prompt-instructies (bewezen door canaries: i01–i05 in de eval), residuele risico's (classifier-sturing door de vraag; zelfbeoordeling van de judge) en hoe de eval die meet.
-- [ ] **Step 3: `docs/traceability.md`** — tabel veld → waarom → waar gezet (uit `TraceRecord`: correlationId, timestamp, policyVersion, model, modelVersion, promptHash, piiRedacted/piiTypes, intent, domain, toolCalls[name, argumentsHash, resultCount], retrievedChunkIds/scores, tokensIn/Out/Cached, estimatedCostEur, latencyMs, outcome, refusalReason) + wat er bewust NIET in zit (vraag- en antwoordtekst) + waar traces landen (Blob `traces/yyyy/MM/dd.jsonl` + `by-id/`, 90 d; App Insights event `rag.request` + metrics) + hoe je van een correlation-id in de UI naar `/trace/{id}` en de Blob-regel komt.
-- [ ] **Step 4: README herschrijven** — secties: Doel (spec §1) · Live demo (URL, wat je kunt proberen: 3 voorbeeldvragen incl. een medische) · Architectuur (mermaid C2: browser → Container App API [PII → intent → search-tool → generatie → citatiefilter → trace] → AI Search / OpenAI / Blob / App Insights; ingest-console → SC/OSM/PDOK → Search) · Guardrails (5 lagen, link ADR-0004) · Evaluatie (bestaande sectie) · Bronnen en attributie (bestaand) · Traceability (link) · Kosten (raming spec §7 + gemeten: eval € 0,03/run, ~€ 0,001/vraag; `az` month-to-date invullen) · Wat dit wel/niet bewijst (wel: RAG-architectuur, guardrails buiten het model, traceability, IaC, CI-scans, eval; niet: schaal, SLA, echte gebruikersdata, denhaag.nl-tekst) · Ontwikkelen (bootstrap, terraform, ingest, eval, tests) · ADR-index · Plannen-index. Verwijder de gestapelde status-regels; één "Status"-regel met datum.
-- [ ] **Step 5: Stale verwijzingen** — spec §10 gate 3 "Ingest kb-chunks.jsonl" → voetnoot "(historisch; kb-corpus verwijderd 28-08)"; `followups-na-plan-1.md` items 1, 5, 13, 16 afvinken.
-- [ ] **Step 6: Commit via PR** — `docs: ADR-0001, ADR-0004, traceability.md en README met architectuurplaat`
+- [x] **Step 1: ADR-0001** — context (spec §3), opties: (A) application-owned orchestration in .NET met Foundry als model-runtime; (B) Azure AI Foundry Agent Service met AI Search-tool; (C) Semantic Kernel / Agent Framework. Afweging per criterium: controle over guardrails buiten het model (A ✔, B ✘: tool-keuze bij het model, C ±), evalueerbaarheid/traceability (A: elke stap eigen code en trace-veld), lock-in, kosten (A: alleen model-calls), complexiteit (B/C minder code, maar zwarte dozen). Besluit A; gevolgen: meer eigen code, maar elke policy-stap getest (verwijs naar `AskOrchestrator`, eval-categorieën).
+- [x] **Step 2: ADR-0004** — de vijf lagen (PII-regex vóór het model; intent-classificatie met enum-schema; tool-allow-list met orchestrator-aanroep; untrusted-content-boundary met source-blokken + neutralisatie; escalatie op score/citaties + citatiefilter), waarom niet alleen system-prompt-instructies (bewezen door canaries: i01–i05 in de eval), residuele risico's (classifier-sturing door de vraag; zelfbeoordeling van de judge) en hoe de eval die meet.
+- [x] **Step 3: `docs/traceability.md`** — tabel veld → waarom → waar gezet (uit `TraceRecord`: correlationId, timestamp, policyVersion, model, modelVersion, promptHash, piiRedacted/piiTypes, intent, domain, toolCalls[name, argumentsHash, resultCount], retrievedChunkIds/scores, tokensIn/Out/Cached, estimatedCostEur, latencyMs, outcome, refusalReason) + wat er bewust NIET in zit (vraag- en antwoordtekst) + waar traces landen (Blob `traces/yyyy/MM/dd.jsonl` + `by-id/`, 90 d; App Insights event `rag.request` + metrics) + hoe je van een correlation-id in de UI naar `/trace/{id}` en de Blob-regel komt.
+- [x] **Step 4: README herschrijven** — secties: Doel (spec §1) · Live demo (URL, wat je kunt proberen: 3 voorbeeldvragen incl. een medische) · Architectuur (mermaid C2: browser → Container App API [PII → intent → search-tool → generatie → citatiefilter → trace] → AI Search / OpenAI / Blob / App Insights; ingest-console → SC/OSM/PDOK → Search) · Guardrails (5 lagen, link ADR-0004) · Evaluatie (bestaande sectie) · Bronnen en attributie (bestaand) · Traceability (link) · Kosten (raming spec §7 + gemeten: eval € 0,03/run, ~€ 0,001/vraag; `az` month-to-date invullen) · Wat dit wel/niet bewijst (wel: RAG-architectuur, guardrails buiten het model, traceability, IaC, CI-scans, eval; niet: schaal, SLA, echte gebruikersdata, denhaag.nl-tekst) · Ontwikkelen (bootstrap, terraform, ingest, eval, tests) · ADR-index · Plannen-index. Verwijder de gestapelde status-regels; één "Status"-regel met datum.
+- [x] **Step 5: Stale verwijzingen** — spec §10 gate 3 "Ingest kb-chunks.jsonl" → voetnoot "(historisch; kb-corpus verwijderd 28-08)"; `followups-na-plan-1.md` items 1, 5, 13, 16 afvinken.
+- [x] **Step 6: Commit via PR** — `docs: ADR-0001, ADR-0004, traceability.md en README met architectuurplaat`
 
 ---
 

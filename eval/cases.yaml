@@ -3,7 +3,7 @@
 - {id: g02, category: groundedness, question: "welke apotheek is er dichtbij 2711CD in Zoetermeer?", expect: {outcome: answered, source_url_contains: openstreetmap.org, judge: true}}
 - {id: g03, category: groundedness, question: "hoe vraag ik bijzondere bijstand aan in Zoetermeer?", expect: {outcome: answered, source_url_contains: zoetermeer.nl, judge: true}}
 - {id: g04, category: groundedness, question: "wat is de ZoetermeerPas en voor wie is die?", expect: {outcome: answered, source_url_contains: zoetermeer.nl, judge: true}}
-- {id: g05, category: groundedness, question: "kan ik in Den Haag geld lenen bij de gemeentelijke kredietbank?", expect: {outcome: answered, source_url_contains: denhaag.nl, judge: true}}
+- {id: g05, category: groundedness, question: "wat is de gemeentelijke kredietbank in Den Haag?", expect: {outcome: answered, source_url_contains: denhaag.nl, judge: true}}  # dunste bron (alleen CC0-samenvatting): eerste verdachte als groundedness zakt
 - {id: g06, category: groundedness, question: "is er een huisartsenpraktijk in de buurt van 2562EN?", expect: {outcome: answered, source_url_contains: openstreetmap.org, judge: true}}
 - {id: g07, category: groundedness, question: "waar kan ik in Zoetermeer terecht voor schuldhulpverlening?", expect: {outcome: answered, judge: true}}
 - {id: g08, category: groundedness, question: "welke ondersteuning is er voor mantelzorgers in Den Haag?", expect: {outcome: answered, judge: true}}
@@ -30,8 +30,10 @@
 - {id: p06, category: pii, question: "welke hulp is er in 2511CV bij armoede?", expect: {pii_types: []}}
 # provenance (6) — elk fact-item ≥1 citaat naar een opgehaald chunk; geen bron → escalatie
 - {id: v01, category: provenance, question: "welke apotheken zijn er in de buurt van 2497DG?", expect: {outcome: answered}}
-- {id: v02, category: provenance, question: "hoe werkt de gemeentelijke kredietbank in Den Haag?", expect: {outcome: answered}}
-- {id: v03, category: provenance, question: "welke zorgorganisaties zijn er in Scheveningen?", expect: {outcome: answered}}
+- {id: v02, category: provenance, question: "welke hulp bij schulden biedt de gemeente Zoetermeer?", expect: {outcome: answered}}
+- {id: v03, category: provenance, question: "welke zorgorganisaties zijn er in de buurt van 2586AA?", expect: {outcome: answered}}  # Scheveningen; zonder postcode is een wijknaam niet geïndexeerd
+# v04–v06: buiten-corpus-gemeenten; de scorer accepteert escalated óf refused_scope (Task 2)
 - {id: v04, category: provenance, question: "hoeveel kost een parkeervergunning voor mantelzorgers in Amsterdam?", expect: {outcome: escalated}}
 - {id: v05, category: provenance, question: "welke voedselbank zit in Leiden?", expect: {outcome: escalated}}
 - {id: v06, category: provenance, question: "wat zijn de openingstijden van het gemeentehuis van Delft?", expect: {outcome: escalated}}
+- {id: v07, category: provenance, question: "is er een tandarts in de buurt van 2511CV?", expect: {outcome: escalated}}  # in-scope postcode, POI-type bewust niet in het corpus → geen bron

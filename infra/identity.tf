@@ -32,3 +32,18 @@ resource "azurerm_role_assignment" "operator" {
   role_definition_name = each.value.role
   scope                = each.value.scope
 }
+
+# De CI-identity (GitHub OIDC, aangemaakt door bootstrap.ps1) draait ingest en eval en heeft daarvoor
+# dezelfde data-rollen nodig als de app; Contributor op de subscription geeft géén data-plane-toegang.
+data "azurerm_user_assigned_identity" "ci" {
+  name                = "id-skr-github-deploy"
+  resource_group_name = "rg-skr-tfstate"
+}
+
+resource "azurerm_role_assignment" "ci" {
+  for_each             = local.app_roles
+  principal_id         = data.azurerm_user_assigned_identity.ci.principal_id
+  principal_type       = "ServicePrincipal"
+  role_definition_name = each.value.role
+  scope                = each.value.scope
+}

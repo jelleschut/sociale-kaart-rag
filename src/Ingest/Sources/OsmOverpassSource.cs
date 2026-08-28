@@ -70,7 +70,7 @@ public sealed partial class OsmOverpassSource(HttpClient http)
                 BodyText = T("description") is { } d ? PageFetcher.RemovePersonalContacts(d) : null,
                 Municipality = municipality, Street = StreetWithoutNumber(T("addr:street")),
                 Postcode = NormalisePostcode(T("addr:postcode")),
-                Phone = T("phone") ?? T("contact:phone"), Website = T("website") ?? T("contact:website"),
+                Phone = RedactPhone(T("phone") ?? T("contact:phone")), Website = T("website") ?? T("contact:website"),
                 OpeningHours = T("opening_hours"),
                 Lat = lat is null ? null : Math.Round(lat.Value, 3), Lon = lon is null ? null : Math.Round(lon.Value, 3),
                 Attribution = Attribution,
@@ -84,6 +84,15 @@ public sealed partial class OsmOverpassSource(HttpClient http)
         if (e.TryGetProperty("lat", out var la) && e.TryGetProperty("lon", out var lo)) return (la.GetDouble(), lo.GetDouble());
         if (e.TryGetProperty("center", out var c)) return (c.GetProperty("lat").GetDouble(), c.GetProperty("lon").GetDouble());
         return (null, null);
+    }
+
+    // Mobiele nummers zijn persoonsgegevens en worden verwijderd (zelfde filter als paginatekst); vaste
+    // organisatienummers blijven staan (ADR-0002).
+    private static string? RedactPhone(string? phone)
+    {
+        if (phone is null) return null;
+        var redacted = PageFetcher.RemovePersonalContacts(phone);
+        return redacted == "[telefoon verwijderd]" ? null : redacted;
     }
 
     private static string? StreetWithoutNumber(string? street) => street is null ? null : TrailingNumber().Replace(street, "").Trim();

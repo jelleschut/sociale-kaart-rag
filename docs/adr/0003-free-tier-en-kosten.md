@@ -8,7 +8,7 @@ Productie-hardening die geld kost of geen functie heeft in een publiek demo-scen
 wordt bewust niet gedaan; elke afwijking staat hier met reden.
 
 ## Besluit
-- Azure AI Search **Free** (geen SLA, 50 MB, 3 indexen) — voldoende voor ~400 kb-chunks + sociale kaart.
+- Azure AI Search **Free** (geen SLA, 50 MB, 3 indexen) — voldoende voor ~800 sociale-kaart-chunks.
 - Container Apps **consumption**, 0–1 replica, publieke ingress zonder WAF/private endpoint.
 - Storage LRS, Microsoft-managed keys, geen private endpoints; keys uitgeschakeld (alleen RBAC).
 - Log Analytics dagquotum 0,5 GB (harde ingest-cap, geen kosten-cap).

@@ -25,3 +25,12 @@ Uit de afsluitende review over de hele plan-1-implementatie. Geen blockers; op t
 | 14 | `PostcodeDetector` accepteert SA/SD/SS-letterparen (PostNL kent ze niet) | precisie | `Geocoding.cs` | 4 |
 | 15 | Eval-cases voor geo-filter (DH-postcode → DH-hits, ZM → ZM, SC altijd) en voor praktijknamen | regressiebescherming | eval | 3 |
 | 16 | UI toont `sources[].attribution` zichtbaar (ODbL/CC0) | licentieplicht in de UI | htmx-pagina | 4 |
+
+## Na plan 3 (eindreview 28-08-2026)
+
+| # | Onderwerp | Waarom | Waar | Plan |
+|---|---|---|---|---|
+| 17 | Rapport-PR van `eval.yml` triggert geen CI (GITHUB_TOKEN); mergen met `--admin` of een fine-grained PAT als secret | GitHub-beperking | `.github/workflows/eval.yml`, ADR-0005 | 4 |
+| 18 | `contents: write`/`pull-requests: write` gelden voor de hele eval-job; opsplitsen in twee jobs met artifact-overdracht als least-privilege gewenst is | permissie-scope | `eval.yml` | later |
+| 19 | Judge = zelfde model als generator (zelfbeoordeling); overweeg een tweede, onafhankelijk judge-model als het budget dat toelaat | eval-onafhankelijkheid | `src/Eval/Judge.cs`, ADR-0005 | later |
+| 20 | Escalatie-cases v04–v06 accepteren ook `refused_scope`; als de classifier structureel `out_of_scope` kiest voor andere gemeenten is een eigen categorie "buiten werkgebied" zuiverder | intent-taxonomie | `IntentClassifier`, `eval/cases.yaml` | 4 |

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using SocialeKaartRag.Core;
 using SocialeKaartRag.Core.Trace;
 
@@ -30,7 +31,7 @@ public static class AskEndpoint
                 sources = result.Sources.Select(s => new { id = s.Id, sourceId = s.SourceId, url = s.Url, heading = s.Heading, lastVerified = s.LastVerified, attribution = s.Attribution }),
                 policyVersion = result.PolicyVersion,
             });
-        });
+        }).RequireRateLimiting("ask");
 
         app.MapPost("/ask/fragment", async (HttpRequest request, IAskOrchestrator orchestrator, HttpContext http, CancellationToken ct) =>
         {
@@ -44,7 +45,8 @@ public static class AskEndpoint
             http.Response.Headers["X-Correlation-Id"] = correlationId;
             var result = await orchestrator.AskAsync(question, correlationId, ct);
             return Results.Content(AskHtml.Render(result), "text/html; charset=utf-8");
-        }).DisableAntiforgery(); // defensief: er zijn geen cookies/sessies, dus geen CSRF-oppervlak; antiforgery is niet geregistreerd
+        }).DisableAntiforgery() // defensief: er zijn geen cookies/sessies, dus geen CSRF-oppervlak; antiforgery is niet geregistreerd
+          .RequireRateLimiting("ask");
 
         app.MapGet("/trace/{id}", async (string id, ITraceReader reader, CancellationToken ct) =>
         {

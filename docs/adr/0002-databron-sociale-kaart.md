@@ -33,9 +33,15 @@ via PDOK naar een punt vertaald en gefilterd op afstand.
 - OSM: ODbL 1.0. Attributie "© OpenStreetMap-bijdragers" in README, UI en in elk API-antwoord
   (`sources[].attribution`). Onze index is een afgeleide database; bij publicatie van de index
   zelf geldt share-alike — de index wordt niet gepubliceerd, alleen antwoorden met bronverwijzing.
-- Samenwerkende Catalogi / gemeentepagina's: overheidsinformatie; attributie
-  "Bron: gemeente <naam> via Samenwerkende Catalogi (overheid.nl)". Hergebruiksvoorwaarden
-  bevestigd op: <datum + vindplaats invullen in Task 1 stap 2>.
+- Samenwerkende Catalogi: de dataset "Producten en Diensten" is op data.overheid.nl gepubliceerd onder
+  **CC0 1.0** (bevestigd 28-08-2026, https://data.overheid.nl/dataset/samenwerkende-catalogi-producten-en-diensten).
+  Attributie (goed gebruik, niet verplicht): "Bron: gemeente <naam> via Samenwerkende Catalogi (overheid.nl, CC0)".
+- Gemeentepagina's (volledige tekst): **zoetermeer.nl** staat niet-commercieel hergebruik expliciet toe met
+  bronvermelding (https://www.zoetermeer.nl/c-zoetermeer, bevestigd 28-08-2026) → wordt opgehaald.
+  **denhaag.nl** claimt IE-rechten op alle content en verbiedt overname van beeld, zonder uitspraak over tekst
+  (https://www.denhaag.nl/nl/gebruiksvoorwaarden/) → **wordt niet opgehaald**; Haagse producten gebruiken
+  uitsluitend de CC0-samenvatting + link. Toestemming kan via datashop@denhaag.nl worden gevraagd; de
+  PageFetcher heeft daarvoor een per-host-schakelaar.
 - PDOK Locatieserver: CC0.
 
 ## Gevolgen

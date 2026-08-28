@@ -106,7 +106,7 @@ via PDOK naar een punt vertaald en gefilterd op afstand.
 - Het kb-POC-corpus vervalt zodra dit corpus live is (Task 9).
 ```
 
-- [ ] **Step 2: Bevestig de SC-hergebruiksvoorwaarden (handmatig, browser)**
+- [x] **Step 2: Bevestig de SC-hergebruiksvoorwaarden** — gedaan 28-08 (web-onderzoek): SC-dataset CC0; zoetermeer.nl niet-commercieel met bronvermelding; denhaag.nl onduidelijk → besluit: denhaag.nl niet ophalen (zie ADR-0002).
 
 Open `https://www.overheid.nl/` → voettekst "Copyright"/"Proclaimer" (curl krijgt 410) en zoek de tekst over hergebruik (verwacht: CC0 of "vrij te hergebruiken met bronvermelding"). Vul in de ADR de zin "Hergebruiksvoorwaarden bevestigd op: …" in met datum en de letterlijke bewoording. Stop en meld het als er een verbod op geautomatiseerd hergebruik staat.
 
@@ -424,7 +424,11 @@ public class PageFetcherTests
 
     [Fact]
     public void Only_fetches_allowed_hosts()
-        => Assert.False(PageFetcher.IsAllowed(new Uri("https://evil.example/x")));
+    {
+        Assert.False(PageFetcher.IsAllowed(new Uri("https://evil.example/x")));
+        Assert.False(PageFetcher.IsAllowed(new Uri("https://www.denhaag.nl/nl/x/"))); // ADR-0002: geen toestemming
+        Assert.True(PageFetcher.IsAllowed(new Uri("https://www.zoetermeer.nl/zoetermeerpas")));
+    }
 }
 ```
 
@@ -443,7 +447,8 @@ public sealed partial class PageFetcher(HttpClient http)
 {
     public const int MaxChars = 8000;
     public const string UserAgent = "sociale-kaart-rag/1.0 (+https://github.com/jelleschut/sociale-kaart-rag)";
-    private static readonly HashSet<string> AllowedHosts = ["www.denhaag.nl", "www.zoetermeer.nl"];
+    // Per-host-toestemming (ADR-0002): denhaag.nl uit tot er schriftelijke toestemming is.
+    private static readonly HashSet<string> AllowedHosts = ["www.zoetermeer.nl"];
     private static readonly Dictionary<string, string[]> Selectors = new()
     {
         ["www.denhaag.nl"] = ["//main"],
@@ -917,7 +922,7 @@ met `private static string? DomainToCategory(string d) => d is "gezondheid" or "
 
 ### Task 8: Live ingest + gate 5
 
-- [ ] **Step 1: Ingest lokaal** (zelfde env-vars als plan 1 Task 7): `dotnet run --project src/Ingest -- ingest-social-map`. Verwacht: `sc Den Haag: 266 producten, ≥ 200 met paginatekst`, `sc Zoetermeer: 230 …`, `osm: ~820 locaties (~85 Zoetermeer)`, `chunks: ≥ 900`. Duur ≈ 500 × 0,6 s ≈ 5 min voor de pagina's.
+- [ ] **Step 1: Ingest lokaal** (zelfde env-vars als plan 1 Task 7): `dotnet run --project src/Ingest -- ingest-social-map`. Verwacht: `sc Den Haag: 266 producten, 0 met paginatekst` (ADR-0002), `sc Zoetermeer: 230 producten, ≥ 180 met paginatekst`, `osm: ~820 locaties (~85 Zoetermeer)`, `chunks: ≥ 900`. Duur ≈ 230 × 0,6 s ≈ 2,5 min voor de Zoetermeer-pagina's.
 - [ ] **Step 2: Gate-checks**
   - Geo: `POST /ask {"question":"waar is een wijkcentrum in de buurt van 2511CV?"}` → antwoord met OSM-bronnen; `GET /trace/{id}` → `toolCalls[0].argumentsHash` anders dan zonder postcode. Hetzelfde met een Zoetermeer-postcode (bv. `2711CD`) → Zoetermeer-locaties.
   - Regeling: `{"question":"hoe vraag ik bijzondere bijstand aan in Zoetermeer?"}` → SC-bron met `denhaag.nl`/`zoetermeer.nl`-URL en attributie "Samenwerkende Catalogi".

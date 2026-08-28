@@ -13,7 +13,6 @@ public class TaxonomyTests
     [InlineData("social_facility", null, "outreach", null, "welzijn")]
     [InlineData("social_facility", null, null, null, "welzijn")]
     [InlineData("community_centre", null, null, null, "welzijn")]
-    [InlineData(null, null, null, "ngo", "welzijn")]
     [InlineData(null, "counselling", null, null, "welzijn")]
     [InlineData("social_facility", null, "day_care", null, "gezondheid")]
     public void Maps_osm_tags(string? amenity, string? healthcare, string? facility, string? office, string expected)
@@ -24,6 +23,9 @@ public class TaxonomyTests
     [InlineData(null, null, null, "company")]
     [InlineData(null, null, null, null)]
     [InlineData("dentist", "dentist", null, null)]
+    [InlineData(null, null, null, "ngo")]
+    [InlineData(null, null, null, "charity")]
+    [InlineData(null, null, null, "association")]
     public void Unknown_osm_tags_map_to_null(string? amenity, string? healthcare, string? facility, string? office)
         => Assert.Null(Taxonomy.FromOsm(amenity, healthcare, facility, office));
 

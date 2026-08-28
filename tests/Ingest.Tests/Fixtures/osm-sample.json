@@ -1,0 +1,185 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-08-28T06:40:22Z",
+    "timestamp_areas_base": "2026-08-27T09:36:50Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 970314533,
+  "lat": 52.0480194,
+  "lon": 4.4857087,
+  "tags": {
+    "addr:city": "Zoetermeer",
+    "addr:housenumber": "111",
+    "addr:postcode": "2712PT",
+    "addr:street": "Dr. J. W. Paltelaan",
+    "amenity": "community_centre",
+    "club": "sport",
+    "community_centre": "club_home",
+    "name": "ALTV Zoetermeer",
+    "source": "BAG",
+    "source:date": "2013-11-26",
+    "sport": "tennis;padel",
+    "website": "https://www.altvzoetermeer.nl/"
+  }
+},
+{
+  "type": "node",
+  "id": 1670123982,
+  "lat": 52.1057372,
+  "lon": 4.2743072,
+  "tags": {
+    "addr:city": "'s-Gravenhage",
+    "addr:country": "NL",
+    "addr:housenumber": "58",
+    "addr:postcode": "2584BK",
+    "addr:street": "Keizerstraat",
+    "amenity": "community_centre",
+    "check_date": "2026-05-17",
+    "name": "YMCA",
+    "note": "Music centrum",
+    "phone": "+31 70 355 5120",
+    "source": "BAG",
+    "source:date": "2013-11-26",
+    "url": "www.ymcascheveningen.nl"
+  }
+},
+{
+  "type": "node",
+  "id": 1975187550,
+  "lat": 52.0538159,
+  "lon": 4.2351297,
+  "tags": {
+    "addr:city": "'s-Gravenhage",
+    "addr:housenumber": "15",
+    "addr:postcode": "2551TT",
+    "addr:street": "Tramstraat",
+    "amenity": "community_centre",
+    "description": "wijk- en dienstencentrum",
+    "name": "De Henneberg",
+    "opening_hours": "Mo,We,Fr 09:00-13:30",
+    "phone": "+31 70 205 25 90",
+    "source": "BAG",
+    "source:date": "2017-11-08"
+  }
+},
+{
+  "type": "node",
+  "id": 2590910694,
+  "lat": 52.0943130,
+  "lon": 4.2842137,
+  "tags": {
+    "addr:city": "'s-Gravenhage",
+    "addr:housenumber": "1",
+    "addr:postcode": "2517JW",
+    "addr:street": "Churchillplein",
+    "name": "International Residual Mechanism for Criminal Tribunals",
+    "name:en": "International Residual Mechanism for Criminal Tribunals",
+    "name:fr": "Mécanisme international appelé à exercer les fonctions résiduelles des Tribunaux pénaux",
+    "name:nl": "Internationaal Restmechanisme voor Straftribunalen",
+    "office": "ngo",
+    "old_name": "International Criminal Tribunal for the former Yugoslavia",
+    "old_name:en": "International Criminal Tribunal for the former Yugoslavia",
+    "old_name:fr": "Tribunal pénal international pour l’ex-Yougoslavie",
+    "old_name:nl": "Joegoslaviëtribunaal",
+    "short_name": "IRMCT",
+    "source": "BAG",
+    "source:date": "2013-11-26",
+    "website": "https://www.irmct.org"
+  }
+},
+{
+  "type": "node",
+  "id": 2590916946,
+  "lat": 52.1003633,
+  "lon": 4.2858970,
+  "tags": {
+    "addr:city": "'s-Gravenhage",
+    "addr:housenumber": "13",
+    "addr:postcode": "2585JH",
+    "addr:street": "Parkweg",
+    "description": "Het Iran-Verenigde Staten Claims Tribunaal, afkorting IUSCT, is een internationaal tribunaal dat arbitrage verricht inzake de financiële afwikkeling van de nationalisatie van Amerikaanse bezittingen in Iran.",
+    "name": "Iran–United States Claims Tribunal",
+    "name:en": "Iran–United States Claims Tribunal",
+    "name:fa": "دیوان داوری دعاوی ایران و آمریکا",
+    "name:nl": "Iran-Verenigde Staten Claims Tribunaal",
+    "office": "ngo",
+    "source": "BAG",
+    "source:date": "2013-11-26",
+    "website": "http://www.iusct.net/",
+    "wikidata": "Q501576",
+    "wikipedia": "nl:Tribunaal inzake vorderingen tussen Iran en de Verenigde Staten"
+  }
+},
+{
+  "type": "node",
+  "id": 2590925117,
+  "lat": 52.1036208,
+  "lon": 4.2792230,
+  "tags": {
+    "addr:city": "'s-Gravenhage",
+    "addr:housenumber": "206",
+    "addr:postcode": "2584HN",
+    "addr:street": "Badhuisstraat",
+    "amenity": "social_facility",
+    "name": "Buurtzorg",
+    "phone": "+31 6 20655313",
+    "social_facility": "ambulatory_care",
+    "source": "BAG",
+    "source:date": "2013-11-26",
+    "website": "https://www.buurtzorgnederland.com"
+  }
+},
+{
+  "type": "node",
+  "id": 2590936700,
+  "lat": 52.1012110,
+  "lon": 4.2828523,
+  "tags": {
+    "addr:city": "'s-Gravenhage",
+    "addr:housenumber": "3",
+    "addr:postcode": "2584CC",
+    "addr:street": "Kanaalweg",
+    "amenity": "social_facility",
+    "name": "Residence Chateau",
+    "operator": "Korian",
+    "operator:type": "private",
+    "operator:website": "https://www.korian.nl",
+    "operator:wikidata": "Q3198944",
+    "phone": "+31 85 808 7018",
+    "social_facility": "nursing_home",
+    "source": "BAG",
+    "source:date": "2013-11-26",
+    "website": "https://www.korian.nl/locaties/woonzorgcentra/residence-chateau/"
+  }
+},
+{
+  "type": "node",
+  "id": 2590942203,
+  "lat": 52.0929525,
+  "lon": 4.2668914,
+  "tags": {
+    "addr:city": "'s-Gravenhage",
+    "addr:housenumber": "38D",
+    "addr:postcode": "2583EH",
+    "addr:street": "Westduinweg",
+    "amenity": "community_centre",
+    "community_centre": "neighbourhood_centre",
+    "contact:email": "balie.mallemok@welzijnscheveningen.nl",
+    "contact:phone": "+31 70 338 0690",
+    "name": "De Mallemok",
+    "opening_hours": "Mo-Fr",
+    "operator": "Welzijn Scheveningen",
+    "source": "BAG",
+    "source:date": "2013-11-26",
+    "website": "https://welzijnscheveningen.nl/locatie/de-mallemok"
+  }
+}
+
+  ]
+}

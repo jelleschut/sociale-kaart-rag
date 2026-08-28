@@ -61,7 +61,8 @@ public sealed class AskOrchestrator(
             var calls = new List<ToolCall>();
             var hits = await tool.SearchAsync(query, ct);
             calls.Add(new ToolCall(tool.Name, Sha256($"{query.Text}|{query.Category}|{query.Near?.Lat}|{query.Near?.Lon}|{query.TopK}"), hits.Count));
-            if (hits.Count == 0 && category is not null)
+            // De categorie uit de intent is een voorkeur, geen harde grens: bij geen of zwakke hits opnieuw zonder categorie.
+            if (category is not null && (hits.Count == 0 || hits.Max(h => h.Score) < PolicyVersion.EscalationScoreThreshold))
             {
                 query = query with { Category = null };
                 hits = await tool.SearchAsync(query, ct);

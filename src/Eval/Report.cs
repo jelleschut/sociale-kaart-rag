@@ -28,7 +28,7 @@ public static class Report
         sb.AppendLine();
         sb.AppendLine("| Id | Categorie | Status | Toelichting | € |");
         sb.AppendLine("|---|---|---|---|---|");
-        foreach (var r in results) sb.AppendLine($"| {r.Id} | {r.Category} | {(r.Passed ? "✅" : "❌")} | {Regex.Replace(r.Detail, @"\s+", " ").Replace("|", "/")} | {FormatNl(r.CostEur, "0.0000")} |");
+        foreach (var r in results) sb.AppendLine($"| {r.Id} | {r.Category} | {(r.Passed ? "✅" : "❌")} | {Truncate(Regex.Replace(r.Detail, @"\s+", " ").Replace("|", "/"), 240)} | {FormatNl(r.CostEur, "0.0000")} |");
         sb.AppendLine();
         sb.AppendLine("Vragen en antwoorden staan niet in dit rapport (data-minimalisatie, spec §4.5); de cases staan in `eval/cases.yaml`.");
         return sb.ToString();
@@ -38,4 +38,8 @@ public static class Report
     // valt CultureInfo.GetCultureInfo("nl-NL") terug op invariant, dus formatteer expliciet.
     private static string FormatNl(double value, string format) =>
         value.ToString(format, CultureInfo.InvariantCulture).Replace('.', ',');
+
+    // lange judge-reasons of foutmeldingen mogen de tabelrij niet opblazen; toon de eerste 240 tekens.
+    private static string Truncate(string s, int maxLength) =>
+        s.Length <= maxLength ? s : s[..maxLength] + "…";
 }

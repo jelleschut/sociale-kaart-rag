@@ -97,7 +97,7 @@ index gezet.
 Rapport: [`docs/eval-report.md`](docs/eval-report.md) (≈ € 0,03 en 7 min per run). De workflow
 `eval.yml` draait wekelijks en op `workflow_dispatch` en levert het rapport als PR af; CI wordt rood
 onder de drempels. Lokaal: `dotnet run --project src/Eval -c Release` met dezelfde `Azure__*`-
-omgevingsvariabelen als de ingest.
+omgevingsvariabelen als de ingest. Vereist de repo-instelling *Actions → Workflow permissions → Allow GitHub Actions to create and approve pull requests*; zonder die instelling pusht de workflow wél de branch `eval/report` maar faalt de PR-stap.
 
 ## Traceability
 

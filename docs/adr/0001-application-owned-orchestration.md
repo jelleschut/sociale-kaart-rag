@@ -29,7 +29,7 @@ aan met een JSON-schema-gebonden intent als stuurinformatie (ADR-0004).
 
 ## Gevolgen
 
-- Meer eigen code, maar elke policy-stap heeft unit-tests (128 in Core) en een eval-categorie
+- Meer eigen code, maar elke policy-stap heeft unit-tests (130 in Core) en een eval-categorie
   (ADR-0005) — dat is precies het bewijs dat de opdracht vraagt.
 - Prompts, schema's en drempels zijn versioneerbare assets (`PolicyVersion`), zichtbaar in elke
   trace.

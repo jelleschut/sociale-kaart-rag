@@ -715,7 +715,7 @@ Let op: de eval schrijft géén traces naar Blob/App Insights (CapturingSink) �
 
 ### Task 6: `eval.yml`, ADR-0005 en README
 
-- [ ] **Step 1: `.github/workflows/eval.yml`**
+- [x] **Step 1: `.github/workflows/eval.yml`**
 ```yaml
 name: eval
 on:
@@ -779,8 +779,8 @@ jobs:
 ```
 Branch protection eist `build-test`/`iac`/`security-scans` op de PR — die draaien automatisch op de PR-branch.
 
-- [ ] **Step 2: ADR-0005** `docs/adr/0005-eval-als-console-met-canaries.md`: console i.p.v. xUnit-runner (rapport + exit-code), in-process i.p.v. HTTP (trace-velden scoorbaar, geen productie-traces), canaries tijdelijk in de productie-index (seed/cleanup in `finally`; risico: bij een crash tussen seed en cleanup blijven ze staan → `bron:eval` is filterbaar en de volgende run ruimt op), judge = zelfde model als generator (goedkoop; bekende zwakte: zelfbeoordeling — vermeld als beperking), drempels.
-- [ ] **Step 3: README**: sectie "Evaluatie" (categorieën, drempels, hoe te draaien, link naar rapport). Commit via PR — `feat(eval): eval.yml wekelijks + dispatch, ADR-0005, README`.
+- [x] **Step 2: ADR-0005** `docs/adr/0005-eval-als-console-met-canaries.md`: console i.p.v. xUnit-runner (rapport + exit-code), in-process i.p.v. HTTP (trace-velden scoorbaar, geen productie-traces), canaries tijdelijk in de productie-index (seed/cleanup in `finally`; risico: bij een crash tussen seed en cleanup blijven ze staan → `bron:eval` is filterbaar en de volgende run ruimt op), judge = zelfde model als generator (goedkoop; bekende zwakte: zelfbeoordeling — vermeld als beperking), drempels.
+- [x] **Step 3: README**: sectie "Evaluatie" (categorieën, drempels, hoe te draaien, link naar rapport). Commit via PR — `feat(eval): eval.yml wekelijks + dispatch, ADR-0005, README`.
 
 ---
 

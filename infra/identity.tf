@@ -22,13 +22,16 @@ resource "azurerm_role_assignment" "app" {
   scope                = each.value.scope
 }
 
-# Operator (the identity running terraform: developer locally or CI identity) gets the same data roles
-# so Ingest and local integration tests work with DefaultAzureCredential.
-# Geen principal_type: de operator is een User (lokaal) of ServicePrincipal (CI/OIDC); de provider
-# zoekt het type zelf op. De app-identity hierboven heeft het wél nodig omdat die in dezelfde apply ontstaat.
+# Operator: de ontwikkelaar die lokaal terraform draait (User) krijgt dezelfde data-rollen zodat Ingest
+# en lokale integratietests met DefaultAzureCredential werken. De principal staat expliciet in
+# var.operator_object_id (lokaal én in CI dezelfde waarde) — niet afgeleid van "wie draait apply":
+# dat wisselde per context (User lokaal, CI-identity in Actions) en gaf een replace per apply plus een
+# 409 RoleAssignmentExists zodra de CI-identity ook via azurerm_role_assignment.ci zijn rollen kreeg.
+# Leeg = geen operator-rollen (de CI-identity heeft zijn eigen rollen hieronder).
 resource "azurerm_role_assignment" "operator" {
-  for_each             = local.app_roles
-  principal_id         = data.azurerm_client_config.current.object_id
+  for_each             = var.operator_object_id == "" ? {} : local.app_roles
+  principal_id         = var.operator_object_id
+  principal_type       = "User"
   role_definition_name = each.value.role
   scope                = each.value.scope
 }

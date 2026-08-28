@@ -38,3 +38,8 @@ variable "tags" {
     costcenter = "demo"
   }
 }
+variable "operator_object_id" {
+  description = "Entra object-id van de ontwikkelaar (User) die lokaal terraform/ingest draait; leeg = geen operator-rollen. CI geeft dezelfde waarde mee via de repo-variabele OPERATOR_OBJECT_ID zodat lokale en CI-apply niet om de rollen heen en weer wisselen."
+  type        = string
+  default     = ""
+}

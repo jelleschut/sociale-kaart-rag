@@ -2,9 +2,15 @@ namespace SocialeKaartRag.Core.Retrieval;
 
 public sealed record SearchHit(
     string Id, string Corpus, string SourceId, string? SourceUrl, string? Category,
-    string? HeadingPath, string? LastVerified, string Text, double Score);
+    string? HeadingPath, string? LastVerified, string Text, double Score, string[]? Tags = null)
+{
+    public string? Attribution => AttributionFromTags(Tags);
 
-public sealed record SearchQuery(string Text, string? Category = null, int TopK = 6);
+    public static string? AttributionFromTags(string[]? tags) =>
+        tags?.FirstOrDefault(t => t.StartsWith("attribution:", StringComparison.Ordinal))?["attribution:".Length..];
+}
+
+public sealed record SearchQuery(string Text, string? Category = null, GeoPoint? Near = null, double RadiusKm = 5, int TopK = 6);
 
 /// <summary>Enige tool-soort die de orchestrator kent (spec §4.2/§4.3 allow-list). Twee registraties: kb en social-map.</summary>
 public interface ISearchTool

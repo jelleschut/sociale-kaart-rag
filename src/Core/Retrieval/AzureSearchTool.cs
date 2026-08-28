@@ -1,3 +1,4 @@
+using System.Globalization;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Models;
@@ -23,11 +24,9 @@ public sealed class AzureSearchTool(SearchIndexClient indexClient, EmbeddingClie
             {
                 Queries = { new VectorizedQuery(embedding) { KNearestNeighborsCount = query.TopK, Fields = { "vector" } } },
             },
-            Filter = query.Category is null
-                ? $"corpus eq '{corpus}'"
-                : $"corpus eq '{corpus}' and category eq '{query.Category.Replace("'", "''")}'",
+            Filter = BuildFilter(corpus, query.Category, query.Near, query.RadiusKm),
         };
-        foreach (var f in new[] { "id", "corpus", "sourceId", "sourceUrl", "category", "headingPath", "lastVerified", "text" })
+        foreach (var f in new[] { "id", "corpus", "sourceId", "sourceUrl", "category", "headingPath", "lastVerified", "text", "tags" })
             options.Select.Add(f);
 
         var response = await client.SearchAsync<SearchDocumentDto>(query.Text, options, ct);
@@ -35,8 +34,19 @@ public sealed class AzureSearchTool(SearchIndexClient indexClient, EmbeddingClie
         await foreach (var r in response.Value.GetResultsAsync().WithCancellation(ct))
         {
             var d = r.Document;
-            hits.Add(new SearchHit(d.id, d.corpus, d.sourceId, d.sourceUrl, d.category, d.headingPath, d.lastVerified, d.text, r.Score ?? 0));
+            hits.Add(new SearchHit(d.id, d.corpus, d.sourceId, d.sourceUrl, d.category, d.headingPath, d.lastVerified, d.text, r.Score ?? 0, d.tags));
         }
         return hits;
+    }
+
+    /// <summary>OData-filter (spec §4.2): corpus altijd, category optioneel, geo.distance optioneel (radius in km).</summary>
+    public static string BuildFilter(string corpus, string? category, GeoPoint? near, double radiusKm)
+    {
+        var filter = $"corpus eq '{corpus}'";
+        if (category is not null)
+            filter += $" and category eq '{category.Replace("'", "''")}'";
+        if (near is not null)
+            filter += $" and geo.distance(geo, geography'POINT({near.Lon.ToString(CultureInfo.InvariantCulture)} {near.Lat.ToString(CultureInfo.InvariantCulture)})') le {radiusKm.ToString(CultureInfo.InvariantCulture)}";
+        return filter;
     }
 }

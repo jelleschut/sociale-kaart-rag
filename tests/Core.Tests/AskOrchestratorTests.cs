@@ -205,40 +205,45 @@ public class AskOrchestratorTests
     }
 
     [Fact]
-    public async Task Empty_result_with_category_retries_without_category()
+    public async Task Category_goes_to_the_search_tool_as_a_preference_in_exactly_one_call()
     {
-        var search = new FakeSearchSequence("social-map", [], [Hit("c1", 0.9)]);
-        var sink = new MemorySink();
-        var o = new AskOrchestrator(new FakeClassifier(new Intent("wonen", "find_help", "social-map")), [search], new FakeGenerator(new Answer([new("a", "fact", ["c1"])], "high", null)), sink, new FakeGeocoder(null));
-        var r = await o.AskAsync("vraag", "corr");
-        Assert.Equal(TraceOutcome.Answered, r.Outcome);
-        Assert.Equal(["wonen", null], search.Categories);
-        Assert.Equal(2, sink.Last!.ToolCalls.Length);
-        Assert.Equal(0, sink.Last.ToolCalls[0].ResultCount);
-    }
-
-    [Fact]
-    public async Task Weak_hits_with_category_retry_without_category()
-    {
-        var search = new FakeSearchSequence("social-map", [Hit("c1", 0.005)], [Hit("c2", 0.9)]);
-        var sink = new MemorySink();
-        var o = new AskOrchestrator(new FakeClassifier(new Intent("welzijn", "find_help", "social-map")), [search], new FakeGenerator(new Answer([new("a", "fact", ["c2"])], "high", null)), sink, new FakeGeocoder(null));
-        var r = await o.AskAsync("vraag", "corr");
-        Assert.Equal(TraceOutcome.Answered, r.Outcome);
-        Assert.Equal(["welzijn", null], search.Categories);
-        Assert.Equal(2, sink.Last!.ToolCalls.Length);
-    }
-
-    [Fact]
-    public async Task Strong_hits_with_category_do_not_retry()
-    {
-        var search = new FakeSearchSequence("social-map", [Hit("c1", 0.9)]);
+        // ADR-0006: de categorie is een boost in de zoektool, geen filter dat de orchestrator hoeft te herstellen.
+        // Er is dus precies één search-call, ook bij zwakke hits — de retry-tak bestaat niet meer.
+        var search = new FakeSearchSequence("social-map", [Hit("c1", 0.9)], [Hit("c2", 0.9)]);
         var sink = new MemorySink();
         var o = new AskOrchestrator(new FakeClassifier(new Intent("welzijn", "find_help", "social-map")), [search], new FakeGenerator(new Answer([new("a", "fact", ["c1"])], "high", null)), sink, new FakeGeocoder(null));
         var r = await o.AskAsync("vraag", "corr");
         Assert.Equal(TraceOutcome.Answered, r.Outcome);
         Assert.Equal("welzijn", Assert.Single(search.Categories));
         Assert.Single(sink.Last!.ToolCalls);
+    }
+
+    [Fact]
+    public async Task Weak_hits_escalate_instead_of_retrying_without_category()
+    {
+        // Vroeger vuurde hier een tweede search zonder categorie; nu is een zwakke oogst gewoon een escalatie.
+        var search = new FakeSearchSequence("social-map", [Hit("c1", 0.005)], [Hit("c2", 0.9)]);
+        var sink = new MemorySink();
+        var gen = new FakeGenerator(new Answer([new("a", "fact", ["c2"])], "high", null));
+        var o = new AskOrchestrator(new FakeClassifier(new Intent("welzijn", "find_help", "social-map")), [search], gen, sink, new FakeGeocoder(null));
+        var r = await o.AskAsync("vraag", "corr");
+        Assert.Equal(TraceOutcome.Escalated, r.Outcome);
+        Assert.Equal("low_retrieval_score", sink.Last!.RefusalReason);
+        Assert.Equal("welzijn", Assert.Single(search.Categories));
+        Assert.Single(sink.Last.ToolCalls);
+        Assert.Equal(0, gen.Calls);
+    }
+
+    [Fact]
+    public async Task Empty_result_escalates_without_a_second_call()
+    {
+        var search = new FakeSearchSequence("social-map", [], [Hit("c1", 0.9)]);
+        var sink = new MemorySink();
+        var o = new AskOrchestrator(new FakeClassifier(new Intent("wonen", "find_help", "social-map")), [search], new FakeGenerator(new Answer([new("a", "fact", ["c1"])], "high", null)), sink, new FakeGeocoder(null));
+        var r = await o.AskAsync("vraag", "corr");
+        Assert.Equal(TraceOutcome.Escalated, r.Outcome);
+        Assert.Equal(["wonen"], search.Categories);
+        Assert.Equal(0, Assert.Single(sink.Last!.ToolCalls).ResultCount);
     }
 
     [Fact]

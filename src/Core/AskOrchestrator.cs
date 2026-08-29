@@ -24,7 +24,7 @@ public sealed class AskOrchestrator(
 {
     private readonly Dictionary<string, ISearchTool> _tools = tools.ToDictionary(t => t.Corpus);
 
-    // De zes sociale-kaart-domeinen (spec §4.2); out_of_scope heeft geen category-filter.
+    // De zes sociale-kaart-domeinen (spec §4.2); out_of_scope levert geen categorie-boost op.
     private static readonly HashSet<string> SocialMapCategories =
         ["gezondheid", "werk_inkomen", "wonen", "vervoer", "welzijn", "mantelzorg"];
 
@@ -51,27 +51,22 @@ public sealed class AskOrchestrator(
                 return await Finish(record, TraceOutcome.RefusedScope, "no_tool_for_corpus", RefusalTexts.OutOfScope, null, [], sw);
 
             GeoPoint? near = null;
-            if (tool.Corpus == SearchIndexes.SocialMap && PostcodeDetector.Find(pii.Text) is { } pc)
+            if (tool.Corpus == SearchIndexes.SocialMapCorpus && PostcodeDetector.Find(pii.Text) is { } pc)
             {
                 // Een falende geocoder degradeert naar geen geo-filter i.p.v. de hele aanvraag te laten mislukken.
                 try { near = await geocoder.PostcodeAsync(pc, ct); }
                 catch (Exception) { near = null; }
             }
-            var category = tool.Corpus == SearchIndexes.SocialMap ? DomainToCategory(intent.Domain) : null;
+            // De categorie uit de intent is een voorkeur, geen grens: ze gaat als scoring-boost mee de zoektool in
+            // (ADR-0006), niet als filter. Daarom precies één search-call — de retry "opnieuw zonder categorie"
+            // is vervallen; er is niets meer om weg te laten.
+            var category = tool.Corpus == SearchIndexes.SocialMapCorpus ? DomainToCategory(intent.Domain) : null;
             var query = new SearchQuery(pii.Text, category, near);
-            var calls = new List<ToolCall>();
             var hits = await tool.SearchAsync(query, ct);
-            calls.Add(new ToolCall(tool.Name, Sha256($"{query.Text}|{query.Category}|{query.Near?.Lat}|{query.Near?.Lon}|{query.TopK}"), hits.Count));
-            // De categorie uit de intent is een voorkeur, geen harde grens: bij geen of zwakke hits opnieuw zonder categorie.
-            if (category is not null && (hits.Count == 0 || hits.Max(h => h.Score) < PolicyVersion.EscalationScoreThreshold))
-            {
-                query = query with { Category = null };
-                hits = await tool.SearchAsync(query, ct);
-                calls.Add(new ToolCall(tool.Name, Sha256($"{query.Text}|{query.Category}|{query.Near?.Lat}|{query.Near?.Lon}|{query.TopK}"), hits.Count));
-            }
+            var call = new ToolCall(tool.Name, Sha256($"{query.Text}|{query.Category}|{query.Near?.Lat}|{query.Near?.Lon}|{query.TopK}"), hits.Count);
             record = record with
             {
-                ToolCalls = calls.ToArray(),
+                ToolCalls = [call],
                 RetrievedChunkIds = hits.Select(h => h.Id).ToArray(),
                 RetrievedScores = hits.Select(h => h.Score).ToArray(),
             };

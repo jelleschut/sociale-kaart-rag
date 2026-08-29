@@ -57,6 +57,43 @@ public class TaxonomyTests
     public void Maps_sc_subject_and_keywords(string? subject, string title, string abstractText, string? expected)
         => Assert.Equal(expected, Taxonomy.FromSamenwerkendeCatalogi(subject, title, abstractText));
 
+    [Theory]
+    // De regressie die ADR-0006 uitlokte: de ZoetermeerPas is een inkomensregeling én een meedoen-voorziening.
+    // Onder één categorie sneed het welzijn-filter hem weg; nu draagt hij beide, primaire eerst.
+    [InlineData(null, "ZoetermeerPas", "Met de voordeelpas kunt u meedoen aan activiteiten", new[] { "werk_inkomen", "welzijn" })]
+    [InlineData(null, "Meedoenregeling", "Bijdrage voor inwoners met een laag inkomen", new[] { "werk_inkomen", "welzijn" })]
+    [InlineData(null, "Beschermd wonen aanvragen", "Wonen met begeleiding vanuit de Wmo", new[] { "wonen", "gezondheid" })]
+    [InlineData(null, "Gehandicaptenparkeerkaart", "", new[] { "vervoer" })]
+    // Onderwerp als extra categorie i.p.v. fallback-alleen: de trefwoorden geven welzijn, het SC-onderwerp wonen.
+    [InlineData("Huisvesting", "Taalles voor nieuwkomers", "", new[] { "welzijn", "wonen" })]
+    // Zonder trefwoordtreffer blijft het onderwerp de enige — en dus de primaire — categorie.
+    [InlineData("Migratie en integratie", "Aanmelden bij het loket", "", new[] { "welzijn" })]
+    [InlineData(null, "Melding doen over dieren", "Vindt u een zwerfkat?", new string[0])]
+    public void Sc_keywords_yield_every_matching_category_primary_first(string? subject, string title, string abstractText, string[] expected)
+        => Assert.Equal(expected, Taxonomy.AllFromSamenwerkendeCatalogi(subject, title, abstractText));
+
+    [Fact]
+    public void Sc_primary_category_is_the_first_of_the_set()
+    {
+        var all = Taxonomy.AllFromSamenwerkendeCatalogi(null, "ZoetermeerPas", "voordeelpas om mee te kunnen meedoen");
+        Assert.Equal(all.FirstOrDefault(), Taxonomy.FromSamenwerkendeCatalogi(null, "ZoetermeerPas", "voordeelpas om mee te kunnen meedoen"));
+    }
+
+    [Theory]
+    // Woonvormen mét zorg en opvang liggen op twee domeinen tegelijk; de primaire blijft ongewijzigd t.o.v. v1.
+    [InlineData("social_facility", null, "nursing_home", new[] { "wonen", "gezondheid" })]
+    [InlineData("social_facility", null, "shelter", new[] { "wonen", "welzijn" })]
+    [InlineData("social_facility", null, "day_care", new[] { "gezondheid", "welzijn" })]
+    [InlineData(null, "counselling", null, new[] { "welzijn", "gezondheid" })]
+    [InlineData("community_centre", null, null, new[] { "welzijn" })]
+    [InlineData(null, "pharmacy", null, new[] { "gezondheid" })]
+    [InlineData("cafe", null, null, new string[0])]
+    public void Osm_tags_yield_every_matching_category_primary_first(string? amenity, string? healthcare, string? facility, string[] expected)
+    {
+        Assert.Equal(expected, Taxonomy.AllFromOsm(amenity, healthcare, facility, null));
+        Assert.Equal(expected.FirstOrDefault(), Taxonomy.FromOsm(amenity, healthcare, facility, null));
+    }
+
     [Fact]
     public void Categories_are_the_fixed_six()
         => Assert.Equal(["gezondheid", "werk_inkomen", "wonen", "vervoer", "welzijn", "mantelzorg"], Taxonomy.Categories);

@@ -75,7 +75,7 @@ async Task<CaseResult> RunCaseAsync(EvalCase c)
     var sink = new CapturingSink();
     var orchestrator = new AskOrchestrator(
         new OpenAiIntentClassifier(chat),
-        [new AzureSearchTool(indexClient, sp.GetRequiredService<EmbeddingClient>(), SearchIndexes.SocialMap)],
+        [new AzureSearchTool(indexClient, sp.GetRequiredService<EmbeddingClient>(), SearchIndexes.SocialMap, SearchIndexes.SocialMapCorpus)],
         new OpenAiAnswerGenerator(chat), sink, new PdokGeocoder(http));
     AskResult r; JudgeVerdict? verdict = null; var judgeCost = 0.0;
     try { r = await orchestrator.AskAsync(c.Question, Guid.NewGuid().ToString("n")); }

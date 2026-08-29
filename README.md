@@ -5,7 +5,7 @@ Een kleine, publiek toonbare referentie-implementatie van een RAG-gids over een 
 **buiten** het model, een trace per request, een reproduceerbare evaluatie en alles als code.
 Geen productie-ambitie, wel productie-discipline.
 
-Status (28-08-2026): plannen 1–4 uitgevoerd; spec-stappen 1–7 klaar. Live demo: https://ca-skr-9asax-api.delightfulflower-dcbb582b.swedencentral.azurecontainerapps.io
+Status (29-08-2026): plannen 1–5 uitgevoerd; spec-stappen 1–7 klaar. Live demo: https://ca-skr-9asax-api.delightfulflower-dcbb582b.swedencentral.azurecontainerapps.io
 
 ## Live demo
 
@@ -39,7 +39,7 @@ flowchart LR
         P5 -.-> T
     end
     subgraph azure[Azure · Sweden Central · ≤ €25/maand]
-        S[(AI Search Free<br/>index social-map<br/>hybrid + geo)]
+        S[(AI Search Free<br/>index social-map-v2<br/>hybrid + geo + categorie-boost)]
         O[Azure OpenAI<br/>gpt-4.1-mini · text-embedding-3-small]
         B[(Blob<br/>traces 90 d · snapshots)]
         AI[App Insights]
@@ -60,6 +60,12 @@ flowchart LR
     CH --> S
     CH --> B
 ```
+
+Retrieval is hybride (BM25 + vector, RRF-gefuseerd) over de index `social-map-v2`. Corpus en
+nabijheid zijn **harde** filters; de categorie uit de intent is dat bewust níét — die gaat als
+tag-boost (scoring profile `category-boost`) de query in, omdat een fragment in meer dan één
+domein kan vallen en een domein-gok van het model nooit een relevant document mag wegsnijden
+([ADR-0006](docs/adr/0006-categorie-als-boost-niet-als-filter.md)).
 
 De API is de orchestrator; Foundry/OpenAI is alleen model-runtime (ADR-0001). Alle Azure-toegang
 loopt via managed identity — er staat nergens een key. Infra is Terraform met `terraform test`-
@@ -116,7 +122,7 @@ App Insights-event met metrics. Veld-voor-veld: [`docs/traceability.md`](docs/tr
 | [OpenStreetMap](https://www.openstreetmap.org/copyright) | wijkcentra, sociale voorzieningen, zorglocaties met adres, telefoon, website, openingstijden | © OpenStreetMap-bijdragers, [ODbL 1.0](https://opendatacommons.org/licenses/odbl/) |
 | [PDOK Locatieserver](https://www.pdok.nl/) | postcode/gemeente → coördinaat | CC0 |
 
-Corpus: 794 chunks (176 regelingen, 618 locaties), categorie-taxonomie, coördinaten afgerond op
+Corpus: 795 chunks (176 regelingen, 619 locaties) in `social-map-v2`, meervoudige categorie-taxonomie, coördinaten afgerond op
 ~100 m, geen huisnummers, snapshots van elke ingest in Blob. Persoonsgegevens: organisaties, geen
 personen; mobiele nummers en persoonlijke e-mails worden verwijderd; praktijknamen van
 eenmanszaken zijn een geaccepteerd risico (ADR-0002).
@@ -161,8 +167,8 @@ authenticatie via `az login` (lokaal) of managed identity (Container App, CI). L
 ## Documentatie
 
 - Ontwerp: [`docs/superpowers/specs/2026-08-27-sociale-kaart-rag-design.md`](docs/superpowers/specs/2026-08-27-sociale-kaart-rag-design.md)
-- ADR's: [0001 application-owned orchestration](docs/adr/0001-application-owned-orchestration.md) · [0002 databron](docs/adr/0002-databron-sociale-kaart.md) · [0003 free tier en kosten](docs/adr/0003-free-tier-en-kosten.md) · [0004 guardrails buiten het model](docs/adr/0004-guardrails-buiten-het-model.md) · [0005 eval](docs/adr/0005-eval-als-console-met-canaries.md)
-- Plannen: [1 fundament tot `/ask`](docs/superpowers/plans/2026-08-27-fundament-tot-ask.md) · [2 sociale-kaart-corpus](docs/superpowers/plans/2026-08-28-plan2-sociale-kaart-corpus.md) · [3 eval-suite](docs/superpowers/plans/2026-08-28-plan3-eval-suite.md) · [4 UI, ADR's, README](docs/superpowers/plans/2026-08-28-plan4-ui-adr-readme.md) · [follow-ups](docs/superpowers/plans/followups-na-plan-1.md)
+- ADR's: [0001 application-owned orchestration](docs/adr/0001-application-owned-orchestration.md) · [0002 databron](docs/adr/0002-databron-sociale-kaart.md) · [0003 free tier en kosten](docs/adr/0003-free-tier-en-kosten.md) · [0004 guardrails buiten het model](docs/adr/0004-guardrails-buiten-het-model.md) · [0005 eval](docs/adr/0005-eval-als-console-met-canaries.md) · [0006 categorie als boost](docs/adr/0006-categorie-als-boost-niet-als-filter.md)
+- Plannen: [1 fundament tot `/ask`](docs/superpowers/plans/2026-08-27-fundament-tot-ask.md) · [2 sociale-kaart-corpus](docs/superpowers/plans/2026-08-28-plan2-sociale-kaart-corpus.md) · [3 eval-suite](docs/superpowers/plans/2026-08-28-plan3-eval-suite.md) · [4 UI, ADR's, README](docs/superpowers/plans/2026-08-28-plan4-ui-adr-readme.md) · [5 categorie als boost](docs/superpowers/plans/2026-08-29-plan5-categorie-boost.md) · [follow-ups](docs/superpowers/plans/followups-na-plan-1.md)
 - [Traceability](docs/traceability.md) · [Eval-rapport](docs/eval-report.md)
 
 Licentie: MIT. Broncode-attributie: dit project is met Claude Code gebouwd volgens plan-per-taak met

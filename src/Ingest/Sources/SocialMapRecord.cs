@@ -7,7 +7,10 @@ public sealed record SocialMapRecord
     public required string SourceId { get; init; }      // "sc:<productID>" | "osm:node/123"
     public required string SourceUrl { get; init; }
     public required string Name { get; init; }
+    /// <summary>Primaire categorie (eerste uit <see cref="Categories"/>); null = buiten de taxonomie.</summary>
     public string? Category { get; init; }
+    /// <summary>Alle categorieën, primaire eerst (ADR-0006).</summary>
+    public string[] Categories { get; init; } = [];
     public string? Summary { get; init; }
     public string? BodyText { get; init; }              // gemeentepagina (sc) of description (osm)
     public required string Municipality { get; init; }  // "Den Haag" | "Zoetermeer"

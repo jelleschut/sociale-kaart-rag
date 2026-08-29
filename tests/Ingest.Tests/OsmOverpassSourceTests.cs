@@ -46,6 +46,16 @@ public class OsmOverpassSourceTests
         Assert.Equal(52.123, r.Lat); Assert.Equal(4.346, r.Lon);
         Assert.Equal("huisartsenpraktijk", r.Summary);
         Assert.Equal("gezondheid", r.Category);
+        Assert.Equal(["gezondheid"], r.Categories);
+    }
+
+    [Fact]
+    public void Nursing_home_carries_both_wonen_and_gezondheid()
+    {
+        var json = """{"elements":[{"type":"node","id":7,"lat":52.1,"lon":4.3,"tags":{"name":"Verpleeghuis De Linde","amenity":"social_facility","social_facility":"nursing_home"}}]}""";
+        var r = Assert.Single(OsmOverpassSource.Parse(json, "Den Haag"));
+        Assert.Equal("wonen", r.Category);
+        Assert.Equal(["wonen", "gezondheid"], r.Categories);
     }
 
     [Fact]

@@ -49,10 +49,11 @@ public sealed class SamenwerkendeCatalogiSource(HttpClient http)
             var abstractText = V(Dcterms + "abstract") ?? "";
             var subject = V(Dcterms + "subject");
             var productId = V(Product + "productID");
+            var categories = Taxonomy.AllFromSamenwerkendeCatalogi(subject, title, abstractText);
             records.Add(new SocialMapRecord
             {
                 Source = "sc", SourceId = "sc:" + (string.IsNullOrWhiteSpace(productId) ? url : productId), SourceUrl = url, Name = title, Summary = abstractText,
-                Category = Taxonomy.FromSamenwerkendeCatalogi(subject, title, abstractText),
+                Category = categories.FirstOrDefault(), Categories = categories,
                 Municipality = municipality, LastModified = V(Dcterms + "modified"),
                 Attribution = $"Bron: gemeente {municipality} via Samenwerkende Catalogi (overheid.nl, CC0)",
             });

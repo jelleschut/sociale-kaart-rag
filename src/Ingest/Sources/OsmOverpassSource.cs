@@ -59,14 +59,14 @@ public sealed partial class OsmOverpassSource(HttpClient http)
             if (!e.TryGetProperty("tags", out var tags)) { skipped++; continue; }
             string? T(string k) => tags.TryGetProperty(k, out var v) ? v.GetString() : null;
             var name = T("name");
-            var category = Taxonomy.FromOsm(T("amenity"), T("healthcare"), T("social_facility"), T("office"));
-            if (string.IsNullOrWhiteSpace(name) || category is null) { skipped++; continue; }
+            var categories = Taxonomy.AllFromOsm(T("amenity"), T("healthcare"), T("social_facility"), T("office"));
+            if (string.IsNullOrWhiteSpace(name) || categories.Length == 0) { skipped++; continue; }
             var (lat, lon) = Coords(e);
             var type = e.GetProperty("type").GetString(); var id = e.GetProperty("id").GetInt64();
             list.Add(new SocialMapRecord
             {
                 Source = "osm", SourceId = $"osm:{type}/{id}", SourceUrl = $"https://www.openstreetmap.org/{type}/{id}",
-                Name = name, Category = category, Summary = Describe(tags),
+                Name = name, Category = categories[0], Categories = categories, Summary = Describe(tags),
                 BodyText = T("description") is { } d ? PageFetcher.RemovePersonalContacts(d) : null,
                 Municipality = municipality, Street = StreetWithoutNumber(T("addr:street")),
                 Postcode = NormalisePostcode(T("addr:postcode")),

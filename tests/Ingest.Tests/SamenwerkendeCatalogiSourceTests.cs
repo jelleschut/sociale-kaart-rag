@@ -25,6 +25,7 @@ public class SamenwerkendeCatalogiSourceTests
         Assert.Contains("CC0", r.Attribution);
         Assert.Matches(@"^\d{4}-\d{2}-\d{2}$", r.LastModified!);
         Assert.Equal("werk_inkomen", r.Category); // bijzondere bijstand
+        Assert.Equal(r.Category, r.Categories.FirstOrDefault()); // primaire categorie = eerste van de set
     }
 
     [Fact]

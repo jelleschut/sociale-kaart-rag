@@ -13,7 +13,10 @@ public sealed record Chunk
     public string? SourceUrl { get; init; }
     public required DateTimeOffset RetrievedAt { get; init; }
     public required string ContentHash { get; init; }
+    /// <summary>Primaire categorie: de eerste uit <see cref="Categories"/>. Blijft bestaan voor attributie en logging.</summary>
     public string? Category { get; init; }
+    /// <summary>Alle categorieën van dit fragment, primaire eerst (ADR-0006). Leeg = valt terug op <see cref="Category"/>.</summary>
+    public string[] Categories { get; init; } = [];
     public string? LastVerified { get; init; }
     public string? HeadingPath { get; init; }
     public string[] Tags { get; init; } = [];

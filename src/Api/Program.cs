@@ -33,7 +33,7 @@ builder.Services.AddRateLimiter(o =>
 
 builder.Services.AddSingleton<IIntentClassifier>(sp => new OpenAiIntentClassifier(sp.GetRequiredService<ChatClient>()));
 builder.Services.AddSingleton<IAnswerGenerator>(sp => new OpenAiAnswerGenerator(sp.GetRequiredService<ChatClient>()));
-builder.Services.AddSingleton<ISearchTool>(sp => new AzureSearchTool(sp.GetRequiredService<SearchIndexClient>(), sp.GetRequiredService<EmbeddingClient>(), SearchIndexes.SocialMap));
+builder.Services.AddSingleton<ISearchTool>(sp => new AzureSearchTool(sp.GetRequiredService<SearchIndexClient>(), sp.GetRequiredService<EmbeddingClient>(), SearchIndexes.SocialMap, SearchIndexes.SocialMapCorpus));
 
 builder.Services.AddHttpClient("pdok", c =>
 {

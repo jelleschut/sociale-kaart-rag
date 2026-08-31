@@ -27,7 +27,8 @@ public static class SocialMapChunker
         return new Chunk
         {
             Id = Chunk.MakeId("social-map", r.SourceId), Corpus = "social-map", Source = r.Source, SourceId = r.SourceId, SourceUrl = r.SourceUrl,
-            RetrievedAt = DateTimeOffset.UtcNow, ContentHash = Chunk.HashContent(text), Category = r.Category, LastVerified = r.LastModified,
+            RetrievedAt = DateTimeOffset.UtcNow, ContentHash = Chunk.HashContent(text), Category = r.Category,
+            Categories = r.Categories.Length > 0 ? r.Categories : r.Category is null ? [] : [r.Category], LastVerified = r.LastModified,
             HeadingPath = r.Name, Tags = ["gemeente:" + r.Municipality, "bron:" + r.Source, "attribution:" + r.Attribution], Lat = r.Lat, Lon = r.Lon, Text = text,
         };
     }

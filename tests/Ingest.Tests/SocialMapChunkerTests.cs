@@ -8,7 +8,7 @@ public class SocialMapChunkerTests
     private static SocialMapRecord Osm() => new()
     {
         Source = "osm", SourceId = "osm:node/1", SourceUrl = "https://www.openstreetmap.org/node/1", Name = "Wijkcentrum De Regenvalk",
-        Category = "welzijn", Summary = "wijkcentrum", Municipality = "Den Haag", Street = "Regentesseplein", Postcode = "2562EN",
+        Category = "welzijn", Categories = ["welzijn"], Summary = "wijkcentrum", Municipality = "Den Haag", Street = "Regentesseplein", Postcode = "2562EN",
         Phone = "+31 70 123 4567", Website = "https://example.org", OpeningHours = "Mo-Fr 09:00-17:00", Lat = 52.078, Lon = 4.286,
         Attribution = "© OpenStreetMap-bijdragers (ODbL 1.0)",
     };
@@ -51,6 +51,25 @@ public class SocialMapChunkerTests
     }
 
     [Fact]
+    public void All_categories_travel_to_the_chunk_and_the_primary_is_the_first()
+    {
+        var r = new SocialMapRecord
+        {
+            Source = "sc", SourceId = "sc:zoetermeerpas", SourceUrl = "https://www.zoetermeer.nl/zoetermeerpas", Name = "ZoetermeerPas",
+            Category = "werk_inkomen", Categories = ["werk_inkomen", "welzijn"], Summary = "Voordeelpas om mee te doen.",
+            Municipality = "Zoetermeer", Attribution = "Bron: gemeente Zoetermeer via Samenwerkende Catalogi (overheid.nl, CC0)",
+        };
+        var c = SocialMapChunker.ToChunk(r);
+        Assert.Equal("werk_inkomen", c.Category);
+        Assert.Equal(["werk_inkomen", "welzijn"], c.Categories);
+    }
+
+    [Fact]
+    public void Record_with_only_a_primary_category_still_gets_a_category_set()
+        // Anders zou zo'n chunk zonder boostveld in de index belanden en de categorie-boost nooit kunnen raken.
+        => Assert.Equal(["welzijn"], SocialMapChunker.ToChunk(Osm() with { Categories = [] }).Categories);
+
+    [Fact]
     public void Records_without_category_are_rejected()
-        => Assert.Null(SocialMapChunker.TryToChunk(Osm() with { Category = null }));
+        => Assert.Null(SocialMapChunker.TryToChunk(Osm() with { Category = null, Categories = [] }));
 }

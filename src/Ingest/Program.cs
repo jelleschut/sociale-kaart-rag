@@ -44,8 +44,11 @@ switch (verb)
             {
                 var fetched = await fetcher.FetchAsync(new Uri(page[i].SourceUrl));
                 if (fetched is not null) withText++;
-                var category = page[i].Category ?? (fetched?.Keywords is { } kw ? SocialeKaartRag.Core.SocialMap.Taxonomy.FromSamenwerkendeCatalogi(null, page[i].Name, kw) : null);
-                page[i] = page[i] with { BodyText = fetched?.Text, Category = category, Lat = centroid?.Lat, Lon = centroid?.Lon };
+                // Zonder taxonomie-treffer op titel+samenvatting: nog een poging op de trefwoorden van de gemeentepagina.
+                var categories = page[i].Categories.Length > 0
+                    ? page[i].Categories
+                    : fetched?.Keywords is { } kw ? SocialeKaartRag.Core.SocialMap.Taxonomy.AllFromSamenwerkendeCatalogi(null, page[i].Name, kw) : [];
+                page[i] = page[i] with { BodyText = fetched?.Text, Category = categories.FirstOrDefault(), Categories = categories, Lat = centroid?.Lat, Lon = centroid?.Lon };
             }
             Console.WriteLine($"sc {municipality}: {page.Count} producten, {withText} met paginatekst, {page.Count(p => p.Category is not null)} in taxonomie");
             records.AddRange(page);
@@ -67,13 +70,17 @@ switch (verb)
     }
     case "query":
     {
-        var text = string.Join(' ', args.Skip(1));
-        var tool = new AzureSearchTool(sp.GetRequiredService<SearchIndexClient>(), sp.GetRequiredService<EmbeddingClient>(), SearchIndexes.SocialMap);
-        foreach (var h in await tool.SearchAsync(new SearchQuery(text)))
+        var tool = new AzureSearchTool(sp.GetRequiredService<SearchIndexClient>(), sp.GetRequiredService<EmbeddingClient>(), SearchIndexes.SocialMap, SearchIndexes.SocialMapCorpus);
+        // Optionele vlag `--cat=<categorie>`: de categorie waarop geboost wordt, zodat het effect van het
+        // scoring profile lokaal na te meten is (`query <tekst>` naast `query --cat=welzijn <tekst>`).
+        const string catFlag = "--cat=";
+        var boost = args.Skip(1).FirstOrDefault(a => a.StartsWith(catFlag, StringComparison.Ordinal))?[catFlag.Length..];
+        var text = string.Join(' ', args.Skip(1).Where(a => !a.StartsWith(catFlag, StringComparison.Ordinal)));
+        foreach (var h in await tool.SearchAsync(new SearchQuery(text, boost)))
             Console.WriteLine($"{h.Score:F4}  {h.SourceId}  [{h.Category}]  {h.HeadingPath}\n       {h.SourceUrl}\n       {h.Text[..Math.Min(120, h.Text.Length)].ReplaceLineEndings(" ")}");
         return 0;
     }
     default:
-        Console.WriteLine("gebruik: index-create | ingest-social-map | query <tekst>");
+        Console.WriteLine("gebruik: index-create | ingest-social-map | query [--cat=<categorie>] <tekst>");
         return 1;
 }
